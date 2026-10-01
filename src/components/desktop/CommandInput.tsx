@@ -43,6 +43,24 @@ export function CommandInput() {
     }
   }, [])
 
+  // Auto-focus input on mount, on completion, and on desktop focus event
+  useEffect(() => {
+    inputRef.current?.focus()
+    const handleGlobalFocus = () => {
+      inputRef.current?.focus()
+    }
+    window.addEventListener('needleos:focus-input', handleGlobalFocus)
+    return () => {
+      window.removeEventListener('needleos:focus-input', handleGlobalFocus)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isRunning) {
+      inputRef.current?.focus()
+    }
+  }, [isRunning])
+
   // GSAP: Voice recording wave animation
   useEffect(() => {
     if (isRecording) {
@@ -197,6 +215,7 @@ export function CommandInput() {
       <input
         ref={inputRef}
         type="text"
+        autoFocus
         value={command}
         onChange={(e) => {
           setCommand(e.target.value)

@@ -7,7 +7,7 @@ import '@/tools/definitions'; // Ensure definitions are registered
 import { ToolDefinition } from '@/lib/types';
 
 export default function Settings() {
-  const { settings, toggleSound, toggleAnimations, resetDesktop } = useDesktopStore();
+  const { settings, toggleSound, toggleAnimations, toggleCrtTerminal, resetDesktop } = useDesktopStore();
 
   let registeredTools: ToolDefinition[] = [];
   try {
@@ -76,6 +76,18 @@ export default function Settings() {
                 className={`px-3 py-1 border border-[#000000] w-16 text-center font-bold text-xs ${settings.animations ? 'bg-[#000000] text-[#FFFFFF]' : 'bg-[#FFFFFF] text-[#000000]'}`}
               >
                 {settings.animations ? 'ON' : 'OFF'}
+              </button>
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="font-bold">ThreeUI CRT Terminal (Zion Phosphor)</div>
+                <div className="text-[10px] text-[#777777]">Authored WebGL CRT green phosphor scanline backdrop</div>
+              </div>
+              <button 
+                onClick={toggleCrtTerminal}
+                className={`px-3 py-1 border border-[#000000] w-16 text-center font-bold text-xs ${settings.crtTerminal ? 'bg-[#000000] text-[#FFFFFF]' : 'bg-[#FFFFFF] text-[#000000]'}`}
+              >
+                {settings.crtTerminal ? 'ON' : 'OFF'}
               </button>
             </div>
           </div>

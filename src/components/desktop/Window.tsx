@@ -1,7 +1,6 @@
 'use client'
-
 import React, { useRef, useState, useEffect } from 'react'
-import { Minus, X, Square } from 'lucide-react'
+import { Minus, X, Square, Maximize2, Minimize2 } from 'lucide-react'
 import { useDesktopStore } from '@/stores/desktop-store'
 import { AppWindow } from '@/lib/types'
 import FileManager from '@/components/apps/FileManager'
@@ -11,7 +10,7 @@ import Settings from '@/components/apps/Settings'
 import gsap from 'gsap'
 
 export function Window({ window: win }: { window: AppWindow }) {
-  const { closeApp, minimizeApp, focusApp, moveWindow, activeWindowId, settings } = useDesktopStore()
+  const { closeApp, minimizeApp, maximizeApp, focusApp, moveWindow, activeWindowId, settings } = useDesktopStore()
   const isActive = activeWindowId === win.id
   
   const windowRef = useRef<HTMLDivElement>(null)
@@ -54,6 +53,7 @@ export function Window({ window: win }: { window: AppWindow }) {
   const handlePointerDown = (e: React.PointerEvent) => {
     focusApp(win.id)
     if ((e.target as HTMLElement).closest('.window-controls')) return
+    if (win.maximized) return
     
     setIsDragging(true)
     const rect = windowRef.current?.getBoundingClientRect()
@@ -67,7 +67,7 @@ export function Window({ window: win }: { window: AppWindow }) {
   }
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDragging) return
+    if (!isDragging || win.maximized) return
     const newX = Math.max(0, e.clientX - dragOffset.x)
     const newY = Math.max(0, e.clientY - dragOffset.y)
     moveWindow(win.id, { x: newX, y: newY })
@@ -112,6 +112,12 @@ export function Window({ window: win }: { window: AppWindow }) {
     }
   }
 
+  // Maximize / Restore
+  const handleMaximize = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation()
+    maximizeApp(win.id)
+  }
+
   const renderContent = () => {
     switch (win.appId) {
       case 'file-manager': return <FileManager />
@@ -126,16 +132,26 @@ export function Window({ window: win }: { window: AppWindow }) {
     <div
       ref={windowRef}
       onMouseDown={() => focusApp(win.id)}
-      className="absolute flex flex-col border border-[#333333] bg-[#F5F5F2] select-none"
-      style={{
-        left: win.position.x,
-        top: win.position.y,
-        width: win.size.width,
-        height: win.size.height,
-        zIndex: win.zIndex,
-        minWidth: 320,
-        minHeight: 220,
-      }}
+      className="absolute flex flex-col border border-[#333333] bg-[#F5F5F2] select-none transition-[width,height,left,top] duration-150"
+      style={
+        win.maximized
+          ? {
+              left: 0,
+              top: 0,
+              width: '100%',
+              height: '100%',
+              zIndex: win.zIndex + 25,
+            }
+          : {
+              left: win.position.x,
+              top: win.position.y,
+              width: win.size.width,
+              height: win.size.height,
+              zIndex: win.zIndex + 20,
+              minWidth: 320,
+              minHeight: 220,
+            }
+      }
     >
       {/* Title Bar */}
       <div
@@ -145,6 +161,11 @@ export function Window({ window: win }: { window: AppWindow }) {
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
+        onDoubleClick={(e) => {
+          if (!(e.target as HTMLElement).closest('.window-controls')) {
+            handleMaximize(e as unknown as React.MouseEvent)
+          }
+        }}
       >
         <div className="flex items-center gap-2 font-sans text-xs font-semibold">
           <Square size={10} fill="currentColor" />
@@ -157,6 +178,13 @@ export function Window({ window: win }: { window: AppWindow }) {
             title="Minimize"
           >
             <Minus size={13} />
+          </button>
+          <button
+            onClick={handleMaximize}
+            className="p-1 hover:bg-[#FFFFFF]/20 text-[#FFFFFF] rounded-sm transition-colors"
+            title={win.maximized ? "Restore" : "Maximize"}
+          >
+            {win.maximized ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
           </button>
           <button
             onClick={handleClose}

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useDesktopStore } from '@/stores/desktop-store'
 import { useHarnessStore } from '@/stores/harness-store'
-import { Cpu, Layout } from 'lucide-react'
+import { Cpu, Layout, Monitor } from 'lucide-react'
 import gsap from 'gsap'
 
 interface TaskbarProps {
@@ -13,7 +13,7 @@ interface TaskbarProps {
 
 export function Taskbar({ view, onViewChange }: TaskbarProps) {
   const [time, setTime] = useState<Date | null>(null)
-  const { openWindows, activeWindowId, focusApp, minimizeApp, settings } = useDesktopStore()
+  const { openWindows, activeWindowId, focusApp, minimizeApp, settings, toggleCrtTerminal } = useDesktopStore()
   const { runStatus } = useHarnessStore()
   const taskbarRef = useRef<HTMLDivElement>(null)
 
@@ -86,6 +86,20 @@ export function Taskbar({ view, onViewChange }: TaskbarProps) {
             <span className="font-mono">AGENT ACTIVE</span>
           </div>
         )}
+
+        {/* CRT Terminal Mode Toggle */}
+        <button
+          onClick={toggleCrtTerminal}
+          className={`h-full px-2.5 border rounded-sm flex items-center gap-1.5 text-[11px] font-mono transition-all ${
+            settings.crtTerminal
+              ? 'bg-emerald-950/70 border-emerald-500/60 text-emerald-300 shadow-[0_0_8px_rgba(40,240,140,0.2)]'
+              : 'bg-[#1e1e1e] border-[#333333] text-[#888888] hover:text-[#FFFFFF]'
+          }`}
+          title="Toggle ThreeUI CRT Terminal Background"
+        >
+          <Monitor size={12} className={settings.crtTerminal ? "text-emerald-400" : "text-[#888888]"} />
+          <span className="hidden sm:inline">CRT {settings.crtTerminal ? 'ON' : 'OFF'}</span>
+        </button>
 
         {/* Screen Switcher */}
         <button

@@ -81,6 +81,7 @@ export type AppWindow = {
   appId: AppId;
   title: string;
   minimized: boolean;
+  maximized?: boolean;
   zIndex: number;
   position: { x: number; y: number };
   size: { width: number; height: number };

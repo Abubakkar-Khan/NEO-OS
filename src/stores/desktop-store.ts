@@ -21,6 +21,7 @@ interface BrowserState {
 interface SettingsState {
   sound: boolean;
   animations: boolean;
+  crtTerminal: boolean;
 }
 
 interface DesktopStore {
@@ -37,6 +38,7 @@ interface DesktopStore {
   closeApp: (windowId: string) => void;
   focusApp: (windowId: string) => void;
   minimizeApp: (windowId: string) => void;
+  maximizeApp: (windowId: string) => void;
   moveWindow: (windowId: string, pos: { x: number; y: number }) => void;
   resizeWindow: (windowId: string, size: { width: number; height: number }) => void;
   setActiveWindow: (windowId: string | null) => void;
@@ -69,6 +71,7 @@ interface DesktopStore {
   // Settings Actions
   toggleSound: () => void;
   toggleAnimations: () => void;
+  toggleCrtTerminal: () => void;
   resetDesktop: () => void;
   syncFromBackend: (backendState: any) => void;
 }
@@ -86,7 +89,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
   filesystem: initialFilesystem,
   editor: { openFile: null, content: '', dirty: false },
   browser: { url: '', history: [], searchResults: [] },
-  settings: { sound: true, animations: true },
+  settings: { sound: true, animations: true, crtTerminal: true },
   nextZIndex: 1,
 
   openApp: (appId, title) => {
@@ -150,6 +153,14 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
         w.id === windowId ? { ...w, minimized: true } : w
       ),
       activeWindowId: state.activeWindowId === windowId ? null : state.activeWindowId,
+    }));
+  },
+
+  maximizeApp: (windowId) => {
+    set((state) => ({
+      openWindows: state.openWindows.map(w => 
+        w.id === windowId ? { ...w, maximized: !w.maximized } : w
+      ),
     }));
   },
 
@@ -365,6 +376,10 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     set((state) => ({ settings: { ...state.settings, animations: !state.settings.animations } }));
   },
 
+  toggleCrtTerminal: () => {
+    set((state) => ({ settings: { ...state.settings, crtTerminal: !state.settings.crtTerminal } }));
+  },
+
   resetDesktop: () => {
     set({
       openWindows: [],
@@ -372,7 +387,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       filesystem: initialFilesystem,
       editor: { openFile: null, content: '', dirty: false },
       browser: { url: '', history: [], searchResults: [] },
-      settings: { sound: true, animations: true },
+      settings: { sound: true, animations: true, crtTerminal: true },
       nextZIndex: 1,
     });
   },
@@ -424,6 +439,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
         settings: {
           sound: backendState.settings?.sound ?? state.settings.sound,
           animations: backendState.settings?.animations ?? state.settings.animations,
+          crtTerminal: backendState.settings?.crtTerminal ?? state.settings.crtTerminal,
         },
       };
     });

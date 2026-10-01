@@ -1,182 +1,171 @@
 # NeedleOS 🪡🖥️
 
-> **Simulated Desktop Operating System with Local AI Tool Calling, Screen-Aware Agentic Pipeline, GSAP Motion, and Live Web Browsing.**
+> **Local-First Operating System Simulation Powered by Needle 2 (generation=2), FastAPI, Next.js, and WebSocket Event Streaming.**
 
-NeedleOS is an in-browser operating system simulation powered by the **Needle 2** agent execution framework. It converts natural-language text or speech commands into verifiable, multi-step desktop actions executed deterministically against an in-memory virtual operating system state.
+NeedleOS is an in-browser operating system simulation controlled through natural-language text and speech commands. It demonstrates the local 14MB AI model, **Needle 2**, operating a simulated desktop environment through structured, atomic tool calls against an in-memory authoritative virtual operating system state.
 
-Designed with a utilitarian **Swiss retro-computing aesthetic** (monochrome `#000000` / `#FFFFFF` palette, 1px precision borders, dense typography), NeedleOS provides an observable platform for running and inspecting agentic workflows.
+---
+
+## 🏛️ Core Two-Process Architecture
+
+```text
+Next.js (Port 3000)
+       ↕ HTTP / WebSocket (/ws)
+FastAPI (Port 8000)
+       ↓
+Needle 2 (cactus-needle, generation=2)
+       ↓
+Centralized Tool Registry
+       ↓
+Permission / Validation Layer
+       ↓
+Tool Executor
+       ↓
+Virtual OS State (Authoritative In-Memory Store)
+       ↓
+Event Bus
+       ↓
+Next.js UI (Desktop + Harness)
+```
+
+- **Frontend**: Next.js 16 App Router, React 19, TypeScript, Tailwind CSS, GSAP Motion.
+  - The frontend **never directly executes tools or contains Needle logic**.
+  - Consumes authoritative state and structured event streams via WebSocket (`/ws`).
+- **Backend**: Python 3.13+, FastAPI, `cactus-needle` running **Needle 2** with `generation=2`.
+  - Authoritative in-memory virtual filesystem and OS state store.
+  - Centralized Tool Registry with atomic tools and permission levels.
+  - Asynchronous Event Bus streaming structured `AgentEvent` payloads over WebSocket.
 
 ---
 
 ## ⚡ Key Highlights
 
-- **Dual-Screen Architecture**:
-  - **Screen A (Desktop)**: Simulated OS environment with draggable windows, taskbar, desktop shortcuts, speech-to-text dictation, virtual filesystem, and native applications.
-  - **Screen B (Needle Harness)**: Dedicated observability and debugging interface showing raw model outputs, parsed tool queues, real-time execution traces (latency, parameters, outputs), live OS state snapshots, and a chronological event log.
-- **Context & Screen Awareness ("What's in Front")**:
-  - The agent understands the active screen state: which window is focused, what note is open in the text editor, current browser URL, and filesystem status.
-  - Supports deictic commands like *"What's on my screen?"*, *"Read this note"*, *"Close this"*, *"Minimize this"*, *"Save this"*, and *"Search what's in this note"*.
-- **Full Live Web Browser (`iframe` + Reader Engine)**:
-  - Embedded sandbox iframe with omnibar, history back navigation, reload, home, and quick bookmarks (Wikipedia, Hacker News, DuckDuckGo, MDN, Example.com).
-  - Built-in **Reader / Simulated Mode** for local search queries and domains that restrict iframe embedding via `X-Frame-Options`.
-- **GSAP Motion Design**:
-  - Window entrance, minimize-to-taskbar, and close animations powered by GSAP.
-  - Interactive voice activity indicators and staggered trace card entrance animations.
-  - Respects the user's `Settings → Animations` toggle.
-- **Multi-Step Tool Orchestration**:
-  - Parses complex multi-step compound requests into sequential tool calls:
-    > *"Open the text editor, create hello.txt, write 'Hello from Needle', save it, then open the browser and search for Next.js."*
-- **Local Speech-to-Text**:
-  - One-click microphone button using native Web Speech recognition. Dictated text appears in the command bar for review and editing before execution.
+1. **Dual Screens**:
+   - **Screen A (Desktop)**: Retro Swiss/utilitarian desktop simulation with draggable rectangular windows, file manager, text editor, browser, settings, and taskbar.
+   - **Screen B (Needle Harness)**: Dedicated AI execution and observability screen showing raw user command, Needle 2 model output, tool queues, live execution traces with latency, confidence rating, model reasoning, current OS snapshot, and full event log.
+2. **Interactive Needle Mascot**:
+   - Minimalist circular mascot with animated eyes (`• •` idle dots, `- -` thinking hyphens, `^ ^` happy carets, `× ×` alert crosses).
+   - Powered by GSAP animations (idle float, bounce, expressions).
+   - Pops open a retro speech bubble displaying reasoning and answers to queries like *"What's on screen?"*.
+3. **Terminal Command History**:
+   - Press **ArrowUp (`↑`)** to recall previous prompts and commands (like a real terminal/shell).
+   - Press **ArrowDown (`↓`)** to cycle forwards and restore your draft.
+   - Persisted across reloads in `localStorage`.
+4. **Full Browser Simulation**:
+   - Omnibar, history back navigation, reload, and home buttons.
+   - Sandbox `iframe` mode for live web browsing with bookmark bar (Wikipedia, Hacker News, DuckDuckGo, MDN, Example.com).
+   - Deterministic Reader / Simulated Search engine mode for local queries without network blocking.
+5. **Speech-to-Text**:
+   - Native microphone dictation with GSAP animated audio activity waves.
+   - Transcribed text populates the command input for review and editing before execution.
 
 ---
 
-## 🏗️ Architecture
+## 🛠️ Registered Atomic Tools
 
-```
-User Input (Text / Voice)
-         ↓
-Command Input Bar
-         ↓
-Desktop Context Snapshot (Active App, Open Note, Browser State, Windows)
-         ↓
-Agent Runner (AgentRunner.run)
-         ↓
-Needle 2 Adapter (Local Command Parser / Model Adapter)
-         ↓
-Structured Tool Call Sequence
-         ↓
-Schema Validation & Safety Boundaries (validateToolCall)
-         ↓
-Tool Executor (executeTool)
-         ↓
-Virtual OS Services (FS, Editor, Browser, System)
-         ↓
-Zustand Central Store (Desktop State + Harness State)
-         ↓
-UI Update (Desktop UI + Live Harness Trace)
-```
+All capabilities are strictly exposed through atomic tools registered in `backend/tools/registry.py`:
 
----
-
-## 📦 Applications
-
-| App | Description | Capabilities |
-|---|---|---|
-| **File Manager** | Virtual filesystem browser | Directory navigation, create file/folder, rename, move, delete, context menu, breadcrumbs. |
-| **Text Editor** | In-memory text editor | New, open file, insert text, replace, save, save as, line counter, dirty state indicator. |
-| **Browser** | Dual-mode web browser | Live `iframe` sandbox, Reader / Simulated search engine mode, history back, reload, bookmarks. |
-| **Settings** | System control center | Sound toggle, GSAP animation toggle, keyboard shortcuts, tool registry inspection, OS reset. |
+| Category | Tool | Parameters | Permission Level | Description |
+|---|---|---|---|---|
+| **Desktop** | `open_app` | `app` | Automatic | Opens an application (`editor`, `file_manager`, `browser`, `settings`). |
+| **Desktop** | `close_app` | `app` | Automatic | Closes an application window. |
+| **Desktop** | `focus_app` | `app` | Automatic | Focuses and brings a window to the foreground. |
+| **Desktop** | `minimize_app` | `app` | Automatic | Minimizes a window to the taskbar. |
+| **Filesystem** | `list_files` | `path` | Automatic | Lists files and folders in a virtual directory. |
+| **Filesystem** | `create_file` | `path`, `content?` | Automatic | Creates a new virtual file. |
+| **Filesystem** | `create_folder` | `path` | Automatic | Creates a new virtual directory. |
+| **Filesystem** | `read_file` | `path` | Automatic | Reads file content. |
+| **Filesystem** | `write_file` | `path`, `content` | Automatic | Writes text content to a virtual file. |
+| **Filesystem** | `rename_file` | `path`, `new_name` | Automatic | Renames a virtual file. |
+| **Filesystem** | `rename_folder` | `path`, `new_name` | Automatic | Renames a virtual folder. |
+| **Filesystem** | `delete_file` | `path` | **Require Confirmation** | Deletes a virtual file or folder. |
+| **Filesystem** | `move_file` | `source`, `destination`| Automatic | Moves a virtual file to another directory. |
+| **Editor** | `open_editor` | `path` | Automatic | Opens editor and loads virtual file. |
+| **Editor** | `insert_text` | `path`, `content` | Automatic | Appends text into editor buffer. |
+| **Editor** | `replace_text`| `path`, `content` | Automatic | Replaces editor buffer content. |
+| **Editor** | `save_file` | `path` | Automatic | Saves buffer to virtual filesystem. |
+| **Browser** | `open_browser` | — | Automatic | Launches simulated web browser. |
+| **Browser** | `search` | `query` | Automatic | Searches simulated web pages. |
+| **Browser** | `navigate` | `url` | Automatic | Navigates to a specific URL. |
+| **Browser** | `go_back` | — | Automatic | Navigates back in browser history. |
+| **System** | `get_time` | — | Automatic | Returns current system clock time. |
+| **System** | `get_system_info` | — | Automatic | Returns OS metadata and tool count. |
+| **System** | `change_setting` | `key`, `value` | Automatic | Toggles settings (`sound`, `animations`). |
+| **System** | `reset_desktop` | — | **Require Confirmation** | Resets virtual OS to initial state. |
 
 ---
 
-## 🛠️ Registered Tools
+## 🚀 Quick Start Guide
 
-All agent capabilities are registered in the central `ToolRegistry` (`src/tools/registry.ts`):
-
-### 1. Desktop Tools (`src/tools/definitions/desktop-tools.ts`)
-- `open_app`: Opens an application (`file-manager`, `text-editor`, `browser`, `settings`).
-- `close_app`: Closes an application or window ID.
-- `focus_app`: Brings a window to the foreground.
-- `minimize_app`: Minimizes a window to the taskbar.
-
-### 2. Filesystem Tools (`src/tools/definitions/filesystem-tools.ts`)
-- `list_files`: Lists contents of a directory path (default `/`).
-- `create_file`: Creates a file at a path with optional initial content.
-- `create_folder`: Creates a new folder directory.
-- `read_file`: Reads text content from a virtual file path.
-- `write_file`: Writes/appends content to a file.
-- `rename_file`: Renames a virtual file.
-- `rename_folder`: Renames a virtual folder.
-- `delete_file`: Deletes a file or directory node.
-- `move_file`: Moves a file to another virtual folder.
-
-### 3. Editor Tools (`src/tools/definitions/editor-tools.ts`)
-- `open_editor`: Opens the text editor (optionally loading a specific file).
-- `get_editor_content`: Inspects the active file and content currently open in the editor.
-- `insert_text`: Appends text into the active editor buffer.
-- `replace_text`: Replaces the entire active editor buffer.
-- `save_file`: Saves modifications to the currently opened file.
-- `save_as`: Saves buffer content as a new file in the virtual filesystem.
-
-### 4. Browser Tools (`src/tools/definitions/browser-tools.ts`)
-- `open_browser`: Launches the browser window.
-- `navigate`: Navigates to a specific URL (loads live iframe or reader page).
-- `search`: Executes a query across search results / documentation.
-- `go_back`: Returns to the previous URL in browser history.
-
-### 5. System & Inspection Tools (`src/tools/definitions/system-tools.ts`)
-- `inspect_screen`: Returns full structured summary of what is on screen (active window, open note, browser URL, open apps).
-- `get_time`: Retrieves the current system timestamp.
-- `get_system_info`: Returns OS version, model information, and tool count.
-- `change_setting`: Toggles system settings (`sound`, `animations`).
-- `reset_desktop`: Resets all virtual state back to factory defaults.
-
----
-
-## 🖥️ Screen B — Needle Harness
-
-Click **Harness Mode** in the taskbar or run commands to view the execution trace:
-
-- **Command**: Exact user command received.
-- **Model Output**: Raw structured JSON output from the Needle 2 engine.
-- **Tool Queue**: Ordered list of sequential tools with execution statuses (`PENDING`, `RUNNING`, `SUCCESS`, `FAILED`).
-- **Execution Trace**: Detailed step-by-step breakdown displaying duration (`ms`), arguments, tool result output, and any caught errors.
-- **OS State Snapshot**: Live metrics tracking active app, open windows, virtual filesystem count, editor file name, and dirty state.
-- **Event Log**: Chronological audit trail of system events (`USER_INPUT`, `MODEL_CALL`, `TOOL_SELECTED`, `TOOL_VALIDATED`, `TOOL_STARTED`, `TOOL_COMPLETED`, `TOOL_FAILED`).
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
+### 1. Prerequisites
+- Python 3.10+ (Python 3.13 recommended)
 - Node.js 18+ (Node 20+ recommended)
-- npm, pnpm, or yarn
+- `pip install cactus-needle fastapi uvicorn websockets pydantic pytest httpx`
+- `npm install`
 
-### Installation
+### 2. Start Local AI Backend (FastAPI + Needle 2)
 ```bash
-# Clone the repository
-git clone <repo-url>
-cd NEO-OS
+# In project root:
+python -m uvicorn backend.app:app --host 127.0.0.1 --port 8000
+```
+Backend will start at `http://127.0.0.1:8000` with WebSocket endpoint at `ws://127.0.0.1:8000/ws`.
 
-# Install dependencies
-npm install
-
-# Run the development server
+### 3. Start Next.js Frontend
+```bash
+# In project root:
 npm run dev
 ```
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-Visit [http://localhost:3000](http://localhost:3000) in your browser.
+---
 
-### Production Build
+## 🧪 Testing Suite
+
+Run the complete test suite covering filesystem operations, tool validation, permissions, event bus, and multi-step agent execution:
+
 ```bash
-npm run build
-npm run start
+python -m pytest backend/tests -v
+```
+
+All 15 tests pass out of the box:
+```text
+backend/tests/test_events.py::test_event_generation_and_bus_subscription PASSED
+backend/tests/test_filesystem.py::test_filesystem_initial_structure PASSED
+backend/tests/test_filesystem.py::test_filesystem_create_and_read_file PASSED
+backend/tests/test_filesystem.py::test_filesystem_write_file PASSED
+backend/tests/test_filesystem.py::test_filesystem_create_folder_and_nested_file PASSED
+backend/tests/test_filesystem.py::test_filesystem_rename PASSED
+backend/tests/test_filesystem.py::test_filesystem_move PASSED
+backend/tests/test_filesystem.py::test_filesystem_delete PASSED
+backend/tests/test_integration.py::test_full_demo_command_integration PASSED
+backend/tests/test_permissions.py::test_automatic_permissions PASSED
+backend/tests/test_permissions.py::test_require_confirmation_permissions PASSED
+backend/tests/test_permissions.py::test_blocked_execution_without_confirmation PASSED
+backend/tests/test_tools.py::test_tool_registry_has_tools PASSED
+backend/tests/test_tools.py::test_tool_validation PASSED
+backend/tests/test_tools.py::test_tool_execution PASSED
+============================= 15 passed in 4.96s ==============================
 ```
 
 ---
 
-## 🧪 Acceptance Test Flows
+## 🎯 Demo Scenario Walkthrough
 
-Try typing or dictating these commands in the command bar:
+Try submitting this end-to-end command in the command bar (or press `↑` to recall it):
 
-1. **Screen & Context Inspection**:
-   - `What's on my screen?` → Executes `inspect_screen`, reporting active windows and open files.
-2. **Text Editor Workflow**:
-   - `Open the editor, create hello.txt, write "Hello from Needle", save it` → Editor opens, file is created in virtual filesystem, text inserted, file saved.
-   - `What does this note say?` → Agent inspects the open note and returns its contents.
-   - `Close this` → Closes the active text editor window using deictic resolution.
-3. **Filesystem Organization**:
-   - `Create a folder called Projects and move hello.txt into it` → Hierarchy updates to `/Projects/hello.txt`.
-   - `Rename hello.txt to greeting.txt` → File name updates cleanly.
-4. **Live Web Browsing**:
-   - `Open the browser and search for Next.js` → Browser launches and displays simulated search results.
-   - `Go to en.m.wikipedia.org` → Loads Wikipedia inside the live sandboxed iframe.
-5. **Full Multi-Step Sequence**:
-   - `Open the editor, create notes.txt, write "Testing NeedleOS", save it, then open the browser and search for Next.js` → All 6 actions execute sequentially with live visual feedback in both Desktop and Harness screens!
+> **"Open the text editor, create a file called hello.txt, write Hello from Needle, save it, then open the browser and search for Next.js."**
+
+Watch the live execution:
+1. **Text Editor** opens in a retro window.
+2. `hello.txt` is created inside the virtual filesystem.
+3. `"Hello from Needle"` appears in the editor buffer.
+4. File is saved and marked clean.
+5. **Browser** opens to simulated search results for `"Next.js"`.
+6. **Mascot** animates with thinking hyphen eyes `- -` then bounces with happy eyes `^ ^`, displaying reasoning and completion!
+7. **Harness Mode** displays every tool call in order, complete with duration, arguments, results, and full audit logs.
 
 ---
 
 ## 📜 License
 
-MIT License. Built for the NeedleOS demonstration.
+MIT License. Built for the NeedleOS technical demonstration.

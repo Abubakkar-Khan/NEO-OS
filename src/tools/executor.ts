@@ -28,8 +28,8 @@ export async function executeTool(
     }
 
     const tool = toolRegistry.get(toolCall.name);
-    if (!tool) {
-      return { success: false, message: `Tool not found: ${toolCall.name}` };
+    if (!tool || !tool.execute) {
+      return { success: false, message: `Tool execution function not found for: ${toolCall.name}` };
     }
 
     const result = await tool.execute(toolCall.arguments, store);

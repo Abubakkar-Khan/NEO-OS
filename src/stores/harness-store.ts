@@ -1,21 +1,24 @@
 "use client";
 
 import { create } from 'zustand';
-import { HarnessState, RunStatus, ToolCall, ToolEvent, ToolStatus } from '@/lib/types';
+import { HarnessState, RunStatus, ToolCall, AgentEvent, ToolStatus } from '@/lib/types';
 
 interface HarnessStore extends HarnessState {
-  parsedToolCalls: ToolCall[]; // For convenience if we want to store parsed separately
+  parsedToolCalls: ToolCall[];
+  reasoning: string | null;
+  confidence: number | null;
   
   startRun: (command: string, runId: string) => void;
   setModelOutput: (output: string) => void;
   addToolCall: (toolCall: ToolCall) => void;
   updateToolStatus: (toolCallId: string, status: ToolStatus, result?: any, error?: string) => void;
-  addEvent: (event: ToolEvent) => void;
+  addEvent: (event: AgentEvent) => void;
+  setAgentFinished: (data: { reasoning?: string; confidence?: number | null; result?: any }) => void;
   clearRun: () => void;
   reset: () => void;
 }
 
-const initialState: HarnessState & { parsedToolCalls: ToolCall[] } = {
+const initialState: HarnessState & { parsedToolCalls: ToolCall[]; reasoning: string | null; confidence: number | null } = {
   currentCommand: null,
   modelOutput: null,
   toolQueue: [],
@@ -23,6 +26,8 @@ const initialState: HarnessState & { parsedToolCalls: ToolCall[] } = {
   events: [],
   runStatus: 'idle',
   currentRunId: null,
+  reasoning: null,
+  confidence: null,
 };
 
 export const useHarnessStore = create<HarnessStore>((set) => ({
@@ -37,6 +42,8 @@ export const useHarnessStore = create<HarnessStore>((set) => ({
       toolQueue: [],
       parsedToolCalls: [],
       events: [],
+      reasoning: null,
+      confidence: null,
     });
   },
 
@@ -81,6 +88,14 @@ export const useHarnessStore = create<HarnessStore>((set) => ({
     }));
   },
 
+  setAgentFinished: ({ reasoning, confidence }) => {
+    set({
+      runStatus: 'completed',
+      reasoning: reasoning || null,
+      confidence: confidence ?? null,
+    });
+  },
+
   clearRun: () => {
     set({
       currentCommand: null,
@@ -90,6 +105,8 @@ export const useHarnessStore = create<HarnessStore>((set) => ({
       events: [],
       runStatus: 'idle',
       currentRunId: null,
+      reasoning: null,
+      confidence: null,
     });
   },
 

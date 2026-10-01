@@ -1,29 +1,37 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Folder, FileText, Globe, Settings as SettingsIcon } from 'lucide-react'
 import { useDesktopStore } from '@/stores/desktop-store'
 import { DesktopIcon } from './DesktopIcon'
 import { WindowManager } from './WindowManager'
 import { Taskbar } from './Taskbar'
 import { CommandInput } from './CommandInput'
+import { Mascot } from './Mascot'
 import { Harness } from '@/components/harness/Harness'
+import { backendClient } from '@/services/api-client'
 
 export function Desktop() {
   const [view, setView] = useState<'desktop' | 'harness'>('desktop')
   const { openApp } = useDesktopStore()
 
+  useEffect(() => {
+    // Connect to FastAPI backend & WebSocket sync
+    backendClient.init()
+  }, [])
+
   if (view === 'harness') {
     return (
-      <div className="h-screen w-screen flex flex-col bg-[#111111] overflow-hidden">
+      <div className="h-screen w-screen flex flex-col bg-[#111111] overflow-hidden relative">
         <div className="flex-1 overflow-hidden relative">
           <Harness />
         </div>
-        <div className="bg-[#0A0A0A] px-4 py-2 border-t border-[#333333] flex justify-center shrink-0">
+        <div className="bg-[#0A0A0A] px-4 py-2 border-t border-[#333333] flex justify-center shrink-0 z-30">
           <div className="w-full max-w-3xl">
             <CommandInput />
           </div>
         </div>
+        <Mascot />
         <Taskbar view={view} onViewChange={setView} />
       </div>
     )
@@ -59,6 +67,9 @@ export function Desktop() {
         {/* Windows Layer */}
         <WindowManager />
       </div>
+
+      {/* Needle Circular Mascot */}
+      <Mascot />
 
       {/* Floating Command Bar */}
       <div className="absolute bottom-12 left-0 w-full px-4 flex justify-center z-50 pointer-events-none">

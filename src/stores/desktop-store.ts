@@ -70,6 +70,7 @@ interface DesktopStore {
   toggleSound: () => void;
   toggleAnimations: () => void;
   resetDesktop: () => void;
+  syncFromBackend: (backendState: any) => void;
 }
 
 const initialFilesystem: FileNode[] = [
@@ -373,6 +374,58 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       browser: { url: '', history: [], searchResults: [] },
       settings: { sound: true, animations: true },
       nextZIndex: 1,
+    });
+  },
+
+  syncFromBackend: (backendState: any) => {
+    if (!backendState) return;
+    set((state) => {
+      let openWindows = state.openWindows;
+      if (Array.isArray(backendState.openWindows) && backendState.openWindows.length > 0) {
+        openWindows = backendState.openWindows;
+      } else if (Array.isArray(backendState.openApps)) {
+        for (const appId of backendState.openApps) {
+          if (!openWindows.some((w) => w.appId === appId)) {
+            const id = generateId();
+            openWindows = [
+              ...openWindows,
+              {
+                id,
+                appId,
+                title: appId === 'text-editor' ? 'Text Editor' : appId === 'file-manager' ? 'File Manager' : appId === 'browser' ? 'Browser' : 'Settings',
+                minimized: false,
+                zIndex: state.nextZIndex + 1,
+                position: { x: (openWindows.length % 5) * 28 + 40, y: (openWindows.length % 5) * 28 + 40 },
+                size: { width: 720, height: 500 },
+              },
+            ];
+          }
+        }
+      }
+
+      const fs = Array.isArray(backendState.filesystem) && backendState.filesystem.length > 0
+        ? backendState.filesystem
+        : state.filesystem;
+
+      return {
+        openWindows,
+        activeWindowId: backendState.activeWindowId ?? state.activeWindowId,
+        filesystem: fs,
+        editor: {
+          openFile: backendState.editor?.openFile ?? state.editor.openFile,
+          content: backendState.editor?.content ?? state.editor.content,
+          dirty: backendState.editor?.dirty ?? state.editor.dirty,
+        },
+        browser: {
+          url: backendState.browser?.url ?? state.browser.url,
+          history: backendState.browser?.history ?? state.browser.history,
+          searchResults: backendState.browser?.searchResults ?? state.browser.searchResults,
+        },
+        settings: {
+          sound: backendState.settings?.sound ?? state.settings.sound,
+          animations: backendState.settings?.animations ?? state.settings.animations,
+        },
+      };
     });
   },
 }));

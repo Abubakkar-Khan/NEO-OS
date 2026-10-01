@@ -78,7 +78,7 @@ export const ExecutionTrace: React.FC = () => {
                   </pre>
                 </div>
 
-                {tool.result && (
+                {tool.result !== undefined && tool.result !== null && (
                   <div className="text-[#D9D9D9] mt-1">
                     <div className="text-[#888888] text-[10px] mb-1 font-bold">RESULT</div>
                     <pre className="bg-[#111111] p-2 border border-[#333333] overflow-x-auto whitespace-pre-wrap text-[11px] font-mono">
@@ -87,7 +87,7 @@ export const ExecutionTrace: React.FC = () => {
                   </div>
                 )}
 
-                {tool.error && (
+                {Boolean(tool.error) && (
                   <div className="text-[#FF4444] mt-1">
                     <div className="mb-1 font-bold text-[10px]">ERROR</div>
                     <div className="bg-[#1a0000] p-2 border border-[#FF4444] overflow-x-auto text-[11px] font-mono">

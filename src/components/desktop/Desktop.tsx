@@ -10,13 +10,10 @@ import { CommandInput } from './CommandInput'
 import { Mascot } from './Mascot'
 import { Harness } from '@/components/harness/Harness'
 import { backendClient } from '@/services/api-client'
-import { CrtBackground } from '@/shaders/crt/CrtBackground'
-import '@/shaders/threeui.css'
 
 export function Desktop() {
   const [view, setView] = useState<'desktop' | 'harness'>('desktop')
-  const { openApp, settings } = useDesktopStore()
-  const isCrt = settings.crtTerminal
+  const { openApp } = useDesktopStore()
 
   useEffect(() => {
     // Connect to FastAPI backend & WebSocket sync
@@ -36,7 +33,7 @@ export function Desktop() {
         <div className="flex-1 overflow-hidden relative">
           <Harness />
         </div>
-        <div className="bg-[#0A0A0A] px-4 py-2 border-t border-[#333333] flex justify-center shrink-0 z-30">
+        <div className="bg-[#0A0A0A] px-4 py-2 border-t border-[#2A2A2A] flex justify-center shrink-0 z-30">
           <div className="w-full max-w-3xl">
             <CommandInput />
           </div>
@@ -49,28 +46,12 @@ export function Desktop() {
 
   return (
     <div 
-      className={`h-screen w-screen flex flex-col ${isCrt ? 'bg-[#03100a]' : 'bg-[#F5F5F2]'} overflow-hidden relative font-sans select-none`}
+      className="h-screen w-screen flex flex-col bg-[#F8F9FA] overflow-hidden relative font-sans select-none"
       onClick={handleBackgroundClick}
     >
-      {/* Authored ThreeUI CRT Terminal WebGL + 2D Phosphor Background */}
-      {isCrt && (
-        <div className="shader-frame absolute inset-0 z-0 pointer-events-none overflow-hidden opacity-95">
-          <CrtBackground
-            variant="terminal"
-            speed={1.00}
-            typeSpeed={1.00}
-            motion={1.00}
-            hue={0}
-            saturation={1.00}
-            brightness={1.00}
-            opacity={1.00}
-          />
-        </div>
-      )}
-
-      {/* Main Desktop Workspace Area */}
+      {/* 60% Dominant Swiss Minimal Surface with subtle architectural dot grid */}
       <div 
-        className={`flex-1 relative ${isCrt ? 'bg-transparent' : 'bg-desktop-pattern'} flex p-4 desktop-surface-area`}
+        className="flex-1 relative bg-desktop-pattern flex p-4 desktop-surface-area"
         onClick={handleBackgroundClick}
       >
         {/* Desktop Shortcuts: z-[1] so all open windows (z-20+) float strictly above them */}
@@ -78,25 +59,21 @@ export function Desktop() {
           <DesktopIcon 
             icon={<Folder size={30} strokeWidth={1.5} />} 
             label="Files" 
-            isDark={isCrt}
             onDoubleClick={() => openApp('file-manager')} 
           />
           <DesktopIcon 
             icon={<FileText size={30} strokeWidth={1.5} />} 
             label="Editor" 
-            isDark={isCrt}
             onDoubleClick={() => openApp('text-editor')} 
           />
           <DesktopIcon 
             icon={<Globe size={30} strokeWidth={1.5} />} 
             label="Browser" 
-            isDark={isCrt}
             onDoubleClick={() => openApp('browser')} 
           />
           <DesktopIcon 
             icon={<SettingsIcon size={30} strokeWidth={1.5} />} 
             label="Settings" 
-            isDark={isCrt}
             onDoubleClick={() => openApp('settings')} 
           />
         </div>

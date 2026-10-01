@@ -6,6 +6,8 @@ import json
 
 EventType = Literal[
     "user_input",
+    "route_selected",
+    "handoff",
     "model_call",
     "tool_selected",
     "tool_started",
@@ -15,16 +17,25 @@ EventType = Literal[
     "agent_finished"
 ]
 
+class AgentHandoff(BaseModel):
+    runId: str
+    sourceAgent: str
+    targetAgent: str
+    request: str
+    context: Optional[Any] = None
+
 class AgentEvent(BaseModel):
     runId: str
     timestamp: float = Field(default_factory=lambda: round(time.time() * 1000, 2))
-    type: EventType
+    agent: str = "root_router"
+    type: str
     tool: Optional[str] = None
     arguments: Optional[Any] = None
     result: Optional[Any] = None
     error: Optional[str] = None
     confidence: Optional[float] = None
     reasoning: Optional[str] = None
+    message: Optional[str] = None
 
 class EventBus:
     def __init__(self):

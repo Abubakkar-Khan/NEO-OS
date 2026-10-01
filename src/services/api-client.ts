@@ -103,9 +103,26 @@ class BackendClient {
       if (typeLower === 'user_input') {
         const cmd = (evt.arguments as any)?.command || evt.message || '';
         harness.startRun(cmd, evt.runId);
+      } else if (typeLower === 'route_selected') {
+        if (evt.arguments) {
+          harness.setWorkflow({
+            id: evt.runId,
+            original_request: (evt.arguments as any).original_request || '',
+            steps: (evt.arguments as any).steps || [],
+            confidence: evt.confidence ?? 0.95,
+            reasoning: evt.reasoning || 'Workflow decomposed across specialists'
+          });
+        }
+      } else if (typeLower === 'handoff') {
+        if (evt.arguments) {
+          harness.addHandoff(evt.arguments);
+        }
       } else if (typeLower === 'model_call') {
         harness.setModelOutput(JSON.stringify(evt.arguments || { model: 'Needle 2', generation: 2 }, null, 2));
       } else if (typeLower === 'tool_selected') {
+        if (evt.agent) {
+          harness.setActiveAgent(evt.agent);
+        }
         const tc: ToolCall = {
           id: `${evt.runId}_${evt.tool}_${Date.now()}`,
           name: evt.tool || 'unknown_tool',
@@ -114,6 +131,9 @@ class BackendClient {
         };
         harness.addToolCall(tc);
       } else if (typeLower === 'tool_started') {
+        if (evt.agent) {
+          harness.setActiveAgent(evt.agent);
+        }
         const tools = harness.toolQueue;
         const matching = tools.find(t => t.name === evt.tool && t.status === 'pending');
         if (matching) {

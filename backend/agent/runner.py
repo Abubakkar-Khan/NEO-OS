@@ -129,74 +129,9 @@ class AgentRunner:
         return tool(proxy_tool)
 
     async def run(self, user_command: str, run_id: Optional[str] = None) -> Dict[str, Any]:
-        """Execute a natural-language command through Needle 2 agent loop."""
-        run_id = run_id or f"run_{uuid.uuid4().hex[:8]}"
-        self._active_run_id = run_id
-
-        # 1. Emit USER_INPUT
-        await global_event_bus.emit(AgentEvent(
-            runId=run_id,
-            type="user_input",
-            arguments={"command": user_command}
-        ))
-
-        # 2. Emit MODEL_CALL
-        await global_event_bus.emit(AgentEvent(
-            runId=run_id,
-            type="model_call",
-            arguments={"model": "Needle 2", "generation": 2, "query": user_command}
-        ))
-
-        # Check if Needle 2 is available
-        if not self._needle_instance:
-            self._init_needle()
-
-        result_payload = {}
-        reasoning = ""
-        confidence = 0.95
-
-        try:
-            if self._needle_instance:
-                # Needle 2 agentic loop with generation=2
-                # Needle runs synchronously, so we execute in thread to not block event loop
-                response = await asyncio.to_thread(
-                    self._needle_instance.run,
-                    query=user_command,
-                    max_steps=8
-                )
-                reasoning = response.get("reasoning", "")
-                confidence = response.get("confidence", 0.95)
-                result_payload = response
-
-                if not response.get("success") or not response.get("results"):
-                    print(f"[AgentRunner] Model returned truncated or empty calls, executing workflow: {user_command}")
-                    fallback_res = await self._run_deterministic_sequence(user_command, run_id)
-                    result_payload = {**response, **fallback_res, "status": "completed"}
-            else:
-                raise RuntimeError("Needle 2 model could not be loaded.")
-        except Exception as exc:
-            # Fallback deterministic executor for safety if model hits parsing error
-            print(f"[AgentRunner] Model loop warning: {exc}, running deterministic tool mapping")
-            result_payload = await self._run_deterministic_sequence(user_command, run_id)
-
-        # 3. Emit AGENT_FINISHED
-        await global_event_bus.emit(AgentEvent(
-            runId=run_id,
-            type="agent_finished",
-            result=result_payload,
-            reasoning=reasoning,
-            confidence=confidence
-        ))
-
-        self._active_run_id = None
-        return {
-            "runId": run_id,
-            "status": "completed",
-            "result": result_payload,
-            "reasoning": reasoning,
-            "confidence": confidence,
-            "state": global_os_state.to_dict()
-        }
+        """Execute command through Hierarchical Multi-Agent Coordinator."""
+        from backend.agent.coordinator.coordinator import global_coordinator
+        return await global_coordinator.run(user_command, run_id)
 
     async def _run_deterministic_sequence(self, user_command: str, run_id: str) -> Dict[str, Any]:
         """Direct tool execution for robust deterministic fallback."""

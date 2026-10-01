@@ -159,21 +159,25 @@ export function Mascot() {
           ref={bubbleRef}
           className="pointer-events-auto mb-2 max-w-xs sm:max-w-sm bg-[#FFFFFF] text-[#111111] border-2 border-[#111111] p-3 shadow-xl rounded-md text-xs relative font-mono"
         >
-          <div className="flex items-center justify-between pb-1 mb-1.5 border-b border-[#E5E5E0]">
-            <div className="flex items-center gap-1.5 font-bold text-[11px] text-[#444444]">
-              <Sparkles size={11} className="text-[#111111]" />
-              <span>NEEDLE MASCOT</span>
+          <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-[#EAEAEA]">
+            <div className="flex items-center gap-1.5 font-bold text-[11px] text-[#111111]">
+              <div className="flex items-center gap-1 mr-0.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#10A37F]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#8B5CF6]" />
+              </div>
+              <span className="font-mono tracking-tight">NEEDLE AGENT</span>
             </div>
             <button 
               onClick={() => setShowBubble(false)}
-              className="text-[#888888] hover:text-[#111111] p-0.5 rounded-sm"
+              className="text-[#888888] hover:text-[#111111] p-0.5 rounded-sm transition-colors"
               title="Close message"
             >
               <X size={12} />
             </button>
           </div>
 
-          <div className="leading-relaxed text-[11px] max-h-36 overflow-y-auto break-words">
+          <div className="leading-relaxed text-[11px] max-h-36 overflow-y-auto break-words text-[#222222]">
             {speechBubbleText}
           </div>
 
@@ -183,20 +187,25 @@ export function Mascot() {
         </div>
       )}
 
-      {/* Retro Circular Mascot */}
+      {/* Retro Circular Mascot with 60-30-10 accents */}
       <div
         ref={mascotRef}
         onClick={handleMascotClick}
-        className="pointer-events-auto cursor-pointer w-12 h-12 rounded-full bg-[#111111] border-2 border-[#333333] hover:border-[#FFFFFF] shadow-2xl flex flex-col items-center justify-center transition-all hover:scale-105 active:scale-95 group relative select-none"
+        className="pointer-events-auto cursor-pointer w-12 h-12 rounded-full bg-[#111111] border-2 border-[#262626] hover:border-[#10A37F] shadow-xl flex flex-col items-center justify-center transition-all hover:scale-105 active:scale-95 group relative select-none"
         title="Needle Mascot (Click to toggle status speech)"
       >
+        {/* Subtle ChatGPT colored orbital glow ring when active */}
+        {runStatus === 'running' && (
+          <div className="absolute -inset-1 rounded-full border border-[#10A37F]/60 animate-ping pointer-events-none" />
+        )}
+
         {/* Face */}
         <div className="flex flex-col items-center justify-center">
           {renderEyes()}
           {/* Subtle mouth */}
           <div className={`mt-0.5 transition-all ${
-            mood === 'happy' ? 'w-2 h-1 border-b-2 border-[#FFFFFF] rounded-b-full' :
-            mood === 'thinking' ? 'w-1 h-1 bg-[#FFFFFF] rounded-full animate-ping' :
+            mood === 'happy' ? 'w-2 h-1 border-b-2 border-[#10A37F] rounded-b-full' :
+            mood === 'thinking' ? 'w-1 h-1 bg-[#3B82F6] rounded-full animate-ping' :
             mood === 'confused' ? 'w-2 h-0.5 bg-[#FF5555]' :
             'w-1.5 h-0.5 bg-[#666666] rounded-full'
           }`} />

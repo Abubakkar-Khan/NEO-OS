@@ -49,6 +49,7 @@ export type AgentEvent = {
   runId: string;
   timestamp: number;
   type: EventType | string;
+  agent?: string;
   tool?: string;
   arguments?: unknown;
   args?: unknown;
@@ -95,6 +96,35 @@ export type BrowserPage = {
   snippet?: string;
 };
 
+// Hierarchical Multi-Agent types
+export type DomainType = 'desktop' | 'files' | 'editor' | 'browser' | 'system';
+
+export type AgentHandoff = {
+  runId: string;
+  sourceAgent: string;
+  targetAgent: string;
+  request: string;
+  context?: Record<string, unknown>;
+  timestamp?: number;
+};
+
+export type WorkflowStep = {
+  id: string;
+  domain: DomainType;
+  request: string;
+  dependsOn: string[];
+  status?: 'pending' | 'running' | 'completed' | 'failed';
+  result?: unknown;
+};
+
+export type Workflow = {
+  id: string;
+  original_request: string;
+  steps: WorkflowStep[];
+  confidence: number;
+  reasoning: string;
+};
+
 // Agent types
 export type RunStatus = 'idle' | 'running' | 'completed' | 'error';
 
@@ -106,6 +136,7 @@ export type RunResult = {
   error?: string;
   reasoning?: string;
   confidence?: number;
+  workflow?: Workflow;
 };
 
 // Harness types
@@ -118,6 +149,9 @@ export type HarnessState = {
   currentRunId: string | null;
   confidence?: number | null;
   reasoning?: string | null;
+  workflow?: Workflow | null;
+  activeAgent?: string | null;
+  handoffs?: AgentHandoff[];
 };
 
 // Desktop screen & OS context

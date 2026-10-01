@@ -16,30 +16,27 @@ def open_editor(path: str) -> str:
     global_os_state.editor_state["dirty"] = False
     return f"Opened {path} in text editor"
 
-def insert_text(path: str, content: str) -> str:
+def insert_text(content: str, path: str = "") -> str:
     """Insert or append text into the open text editor buffer."""
     current = global_os_state.editor_state.get("content", "")
     updated = current + content if not current else current + "\n" + content
     global_os_state.editor_state["content"] = updated
     global_os_state.editor_state["dirty"] = True
-    if path:
-        global_os_state.editor_state["openFile"] = path
-    return f"Inserted {len(content)} characters into {path or 'active buffer'}"
+    target = path if (path and (path.startswith("/") or "." in path)) else (global_os_state.editor_state.get("openFile") or "/hello.txt")
+    global_os_state.editor_state["openFile"] = target
+    return f"Inserted {len(content)} characters into {target}"
 
-def replace_text(path: str, content: str) -> str:
+def replace_text(content: str, path: str = "") -> str:
     """Replace entire content in the text editor buffer."""
     global_os_state.editor_state["content"] = content
     global_os_state.editor_state["dirty"] = True
-    if path:
-        global_os_state.editor_state["openFile"] = path
+    target = path if (path and (path.startswith("/") or "." in path)) else (global_os_state.editor_state.get("openFile") or "/hello.txt")
+    global_os_state.editor_state["openFile"] = target
     return f"Replaced editor content with {len(content)} characters"
 
-def save_file(path: str) -> str:
+def save_file(path: str = "") -> str:
     """Save the text editor buffer content to the virtual filesystem."""
-    target_path = path or global_os_state.editor_state.get("openFile")
-    if not target_path:
-        target_path = "/untitled.txt"
-
+    target_path = path if (path and (path.startswith("/") or "." in path)) else (global_os_state.editor_state.get("openFile") or "/hello.txt")
     content = global_os_state.editor_state.get("content", "")
     global_os_state.filesystem.write_file(target_path, content)
     global_os_state.editor_state["openFile"] = target_path
@@ -71,10 +68,10 @@ def register_editor_tools():
         parameters={
             "type": "object",
             "properties": {
-                "path": {"type": "string", "description": "Target file path"},
-                "content": {"type": "string", "description": "Text content to insert"}
+                "content": {"type": "string", "description": "Text content to insert"},
+                "path": {"type": "string", "description": "Target file path (optional)"}
             },
-            "required": ["path", "content"]
+            "required": ["content"]
         }
     )
 
@@ -87,10 +84,10 @@ def register_editor_tools():
         parameters={
             "type": "object",
             "properties": {
-                "path": {"type": "string", "description": "Target file path"},
-                "content": {"type": "string", "description": "New replacement content"}
+                "content": {"type": "string", "description": "New replacement content"},
+                "path": {"type": "string", "description": "Target file path (optional)"}
             },
-            "required": ["path", "content"]
+            "required": ["content"]
         }
     )
 
@@ -103,8 +100,8 @@ def register_editor_tools():
         parameters={
             "type": "object",
             "properties": {
-                "path": {"type": "string", "description": "Virtual file path to save as"}
+                "path": {"type": "string", "description": "Virtual file path to save as (optional)"}
             },
-            "required": ["path"]
+            "required": []
         }
     )

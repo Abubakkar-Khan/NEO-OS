@@ -13,6 +13,9 @@ interface HarnessStore extends HarnessState {
   addToolCall: (toolCall: ToolCall) => void;
   updateToolStatus: (toolCallId: string, status: ToolStatus, result?: any, error?: string) => void;
   addEvent: (event: AgentEvent) => void;
+  setWorkflow: (workflow: any) => void;
+  addHandoff: (handoff: any) => void;
+  setActiveAgent: (agent: string) => void;
   setAgentFinished: (data: { reasoning?: string; confidence?: number | null; result?: any }) => void;
   clearRun: () => void;
   reset: () => void;
@@ -28,6 +31,9 @@ const initialState: HarnessState & { parsedToolCalls: ToolCall[]; reasoning: str
   currentRunId: null,
   reasoning: null,
   confidence: null,
+  workflow: null,
+  activeAgent: null,
+  handoffs: [],
 };
 
 export const useHarnessStore = create<HarnessStore>((set) => ({
@@ -44,11 +50,29 @@ export const useHarnessStore = create<HarnessStore>((set) => ({
       events: [],
       reasoning: null,
       confidence: null,
+      workflow: null,
+      activeAgent: 'root_router',
+      handoffs: [],
     });
   },
 
   setModelOutput: (output) => {
     set({ modelOutput: output });
+  },
+
+  setWorkflow: (workflow) => {
+    set({ workflow });
+  },
+
+  addHandoff: (handoff) => {
+    set((state) => ({
+      handoffs: [...(state.handoffs || []), handoff],
+      activeAgent: handoff.targetAgent,
+    }));
+  },
+
+  setActiveAgent: (agent) => {
+    set({ activeAgent: agent });
   },
 
   addToolCall: (toolCall) => {

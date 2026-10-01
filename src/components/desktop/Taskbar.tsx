@@ -13,8 +13,8 @@ interface TaskbarProps {
 
 export function Taskbar({ view, onViewChange }: TaskbarProps) {
   const [time, setTime] = useState<Date | null>(null)
-  const { openWindows, activeWindowId, focusApp, minimizeApp, settings, toggleCrtTerminal } = useDesktopStore()
-  const { runStatus } = useHarnessStore()
+  const { openWindows, activeWindowId, focusApp, minimizeApp, settings } = useDesktopStore()
+  const { runStatus, activeAgent } = useHarnessStore()
   const taskbarRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -38,17 +38,21 @@ export function Taskbar({ view, onViewChange }: TaskbarProps) {
   return (
     <div 
       ref={taskbarRef}
-      className="h-10 bg-[#111111] text-[#FFFFFF] flex items-center justify-between px-2 border-t border-[#333333] shrink-0 z-[100] font-sans text-xs select-none"
+      className="h-10 bg-[#111111] text-[#FFFFFF] flex items-center justify-between px-3 border-t border-[#262626] shrink-0 z-[100] font-sans text-xs select-none shadow-sm"
     >
       <div className="flex items-center gap-3 h-full">
-        {/* Brand/Start Button */}
-        <div className="font-bold px-2.5 py-1 bg-[#222222] border border-[#444444] rounded-sm flex items-center gap-1.5 shadow-sm">
-          <div className="w-2 h-2 bg-[#FFFFFF]" />
-          <span>NeedleOS</span>
+        {/* Brand / Start Button */}
+        <div className="font-bold px-2.5 py-1 bg-[#1A1A1A] border border-[#333333] hover:border-[#555555] rounded-sm flex items-center gap-2 shadow-sm transition-colors cursor-pointer">
+          {/* ChatGPT-style colorful dot badge */}
+          <div className="flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#10A37F]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6]" />
+          </div>
+          <span className="tracking-tight text-[11px] font-mono">NeedleOS</span>
         </div>
 
         {/* Running Windows */}
-        <div className="flex items-center gap-1 h-full py-1">
+        <div className="flex items-center gap-1.5 h-full py-1">
           {openWindows.map((win) => {
             const isActive = activeWindowId === win.id && !win.minimized
             return (
@@ -61,57 +65,43 @@ export function Taskbar({ view, onViewChange }: TaskbarProps) {
                     focusApp(win.id)
                   }
                 }}
-                className={`h-full px-3 border rounded-sm truncate max-w-[160px] flex items-center gap-1.5 transition-all text-left ${
+                className={`h-full px-3 border rounded-sm truncate max-w-[170px] flex items-center gap-2 transition-all text-left ${
                   isActive
-                    ? 'bg-[#333333] border-[#888888] text-[#FFFFFF] shadow-inner font-semibold'
+                    ? 'bg-[#262626] border-[#4A4A4A] text-[#FFFFFF] shadow-inner font-semibold'
                     : win.minimized
-                    ? 'bg-[#181818] border-transparent text-[#777777] hover:bg-[#252525]'
-                    : 'bg-[#1e1e1e] border-transparent text-[#CCCCCC] hover:bg-[#333333]'
+                    ? 'bg-[#141414] border-transparent text-[#666666] hover:bg-[#1F1F1F]'
+                    : 'bg-[#1A1A1A] border-transparent text-[#CCCCCC] hover:bg-[#2A2A2A]'
                 }`}
                 title={win.title}
               >
-                <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-[#FFFFFF]' : 'bg-[#666666]'}`} />
-                <span className="truncate">{win.title}</span>
+                <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-[#10A37F] shadow-[0_0_6px_#10A37F]' : 'bg-[#555555]'}`} />
+                <span className="truncate text-[11px]">{win.title}</span>
               </button>
             )
           })}
         </div>
       </div>
 
-      <div className="flex items-center gap-3 h-full py-1">
-        {/* Agent Activity Badge */}
+      <div className="flex items-center gap-2.5 h-full py-1">
+        {/* Active Multi-Agent Execution Badge */}
         {runStatus === 'running' && (
-          <div className="flex items-center gap-1.5 px-2 py-0.5 bg-[#222222] border border-[#555555] rounded-sm text-[#FFFFFF] text-[11px] animate-pulse">
-            <Cpu size={12} className="text-[#FFFFFF]" />
-            <span className="font-mono">AGENT ACTIVE</span>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#1A261F] border border-[#10A37F]/50 rounded-sm text-[#10A37F] text-[11px] animate-pulse">
+            <span className="w-2 h-2 rounded-full bg-[#10A37F] inline-block shadow-[0_0_8px_#10A37F]" />
+            <span className="font-mono font-bold">{activeAgent ? activeAgent.toUpperCase() : 'AGENT ACTIVE'}</span>
           </div>
         )}
-
-        {/* CRT Terminal Mode Toggle */}
-        <button
-          onClick={toggleCrtTerminal}
-          className={`h-full px-2.5 border rounded-sm flex items-center gap-1.5 text-[11px] font-mono transition-all ${
-            settings.crtTerminal
-              ? 'bg-emerald-950/70 border-emerald-500/60 text-emerald-300 shadow-[0_0_8px_rgba(40,240,140,0.2)]'
-              : 'bg-[#1e1e1e] border-[#333333] text-[#888888] hover:text-[#FFFFFF]'
-          }`}
-          title="Toggle ThreeUI CRT Terminal Background"
-        >
-          <Monitor size={12} className={settings.crtTerminal ? "text-emerald-400" : "text-[#888888]"} />
-          <span className="hidden sm:inline">CRT {settings.crtTerminal ? 'ON' : 'OFF'}</span>
-        </button>
 
         {/* Screen Switcher */}
         <button
           onClick={handleToggleView}
-          className="mode-toggle-btn h-full px-3 hover:bg-[#2A2A2A] active:bg-[#333333] border border-[#333333] rounded-sm flex items-center gap-1.5 font-medium transition-all"
+          className="mode-toggle-btn h-full px-3 hover:bg-[#222222] active:bg-[#2A2A2A] border border-[#2E2E2E] rounded-sm flex items-center gap-1.5 font-medium transition-all text-[11px]"
         >
-          <Layout size={13} className="text-[#888888]" />
-          <span>{view === 'desktop' ? 'Harness Mode' : 'Desktop Mode'}</span>
+          <Layout size={12} className={view === 'harness' ? 'text-[#10A37F]' : 'text-[#888888]'} />
+          <span>{view === 'desktop' ? 'Harness Graph' : 'Desktop Shell'}</span>
         </button>
 
         {/* System Clock */}
-        <div className="px-2 py-1 flex items-center select-none font-mono text-xs text-[#D9D9D9]">
+        <div className="px-2 py-1 flex items-center select-none font-mono text-xs text-[#A0A0A0] border-l border-[#262626] pl-3">
           {time ? time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
         </div>
       </div>

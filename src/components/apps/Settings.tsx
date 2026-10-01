@@ -39,7 +39,7 @@ export default function Settings() {
             </div>
             <div className="flex justify-between">
               <span className="text-[#666666]">AI Agent Core</span>
-              <span className="font-bold">Needle 2 (Context-Aware Runner)</span>
+              <span className="font-bold">Needle 3 (Hierarchical Multi-Agent)</span>
             </div>
             <div className="flex justify-between">
               <span className="text-[#666666]">Registered Tools</span>

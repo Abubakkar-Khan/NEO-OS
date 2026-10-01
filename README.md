@@ -1,8 +1,8 @@
 # NEO-OS
 
-> A local-first operating system simulation powered by a hierarchical multi-agent architecture (Needle 2, generation=2), Swiss 60-30-10 design system, FastAPI, Next.js, and WebSocket event streaming.
+> A local-first operating system simulation powered by a hierarchical multi-agent architecture (Needle 3, generation=3), Swiss 60-30-10 design system, FastAPI, Next.js, and WebSocket event streaming.
 
-NEO-OS is an in-browser operating system simulation controlled through natural-language text and speech commands. It demonstrates how a local tool-calling model (Needle 2, 14MB) operates a simulated desktop environment through a hierarchical multi-agent network consisting of a dedicated Root Router Agent and specialized domain specialist agents acting on an authoritative, in-memory virtual operating system state.
+NEO-OS is an in-browser operating system simulation controlled through natural-language text and speech commands. It demonstrates how a local tool-calling model (Needle 3 by Cactus Compute) operates a simulated desktop environment through a hierarchical multi-agent network consisting of a dedicated Root Router Agent and specialized domain specialist agents acting on an authoritative, in-memory virtual operating system state.
 
 ---
 
@@ -43,7 +43,7 @@ NEO-OS simulates a desktop operating system with windows, applications, files, a
 1. **Root Router Agent**: The router agent has a strictly bounded catalog of 5 routing tools (`route_to_desktop`, `route_to_files`, `route_to_editor`, `route_to_browser`, `route_to_system`). It decomposes complex instructions into ordered workflow steps with dependency tracking (`dependsOn`). It never touches virtual files or UI windows directly.
 2. **Autonomous Domain Specialists**: Each specialist is equipped only with tools required for its domain, preventing tool selection collisions.
 3. **Context Injection**: Before a specialist executes, the agent coordinator passes a snapshot of current system state (e.g. active file buffer, current directory tree, open windows). The specialist inspects this context to resolve references like "this note", "save it", or "here".
-4. **Calibrated Confidence**: Built on Needle 2's calibrated confidence rating, ensuring fallback handling when ambiguous user phrases arise.
+4. **Calibrated Confidence**: Built on Needle 3's calibrated confidence rating, ensuring fallback handling when ambiguous user phrases arise.
 
 ### Agent Hierarchy Diagram
 
@@ -51,7 +51,7 @@ NEO-OS simulates a desktop operating system with windows, applications, files, a
 User Request (Text or Voice)
               |
               v
-     Root Router Agent (Needle 2)
+     Root Router Agent (Needle 3)
               |
    +----------+----------+----------+----------+
    |          |          |          |          |
@@ -164,7 +164,7 @@ Switching to the Harness view reveals the Mission Control Room:
 ### Backend Setup
 
 ```bash
-# Start FastAPI backend with Needle 2:
+# Start FastAPI backend with Needle 3:
 python -m uvicorn backend.app:app --host 127.0.0.1 --port 8000
 ```
 

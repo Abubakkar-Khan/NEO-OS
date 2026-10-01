@@ -92,8 +92,8 @@ def root():
     return {
         "product": "NEO-OS Backend",
         "status": "online",
-        "model": "Needle 2 (cactus-needle)",
-        "generation": 2
+        "model": "Needle 3 (cactus-needle)",
+        "generation": 3
     }
 
 @app.get("/api/state")
@@ -113,7 +113,7 @@ def get_events(limit: int = 100):
 
 @app.post("/api/run")
 async def run_command(req: RunRequest):
-    """Execute natural-language command through Needle 2 agentic loop."""
+    """Execute natural-language command through Needle 3 agentic loop."""
     if not req.command.strip():
         raise HTTPException(status_code=400, detail="Command cannot be empty")
 

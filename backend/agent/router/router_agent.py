@@ -7,7 +7,7 @@ from backend.agent.coordinator.workflow import Workflow, WorkflowStep, DomainTyp
 
 class RouterAgent:
     """
-    Dedicated Root Router Agent powered by Needle 2 (generation=2).
+    Dedicated Root Router Agent powered by Needle 3 (generation=3).
     Has a strictly minimal toolset:
       - route_to_desktop(request: str)
       - route_to_files(request: str)
@@ -23,7 +23,7 @@ class RouterAgent:
         self._init_needle()
 
     def _init_needle(self):
-        """Initialize Needle 2 with the 5 bounded routing tools."""
+        """Initialize Needle 3 with the 5 bounded routing tools."""
         @tool
         def route_to_desktop(request: str) -> str:
             """Route window management or desktop app switching request to Desktop Agent."""
@@ -68,16 +68,16 @@ class RouterAgent:
                     route_to_browser,
                     route_to_system
                 ],
-                generation=2,
+                generation=3,
                 stateless=True
             )
         except Exception as e:
-            print(f"[RouterAgent] Needle 2 init warning: {e}")
+            print(f"[RouterAgent] Needle 3 init warning: {e}")
             self._needle = None
 
     def route(self, user_command: str, run_id: Optional[str] = None) -> Workflow:
         """
-        Classifies request and decomposes multi-domain workflows using Needle 2.
+        Classifies request and decomposes multi-domain workflows using Needle 3.
         """
         run_id = run_id or f"run_{uuid.uuid4().hex[:8]}"
         command_clean = user_command.strip()
@@ -86,10 +86,10 @@ class RouterAgent:
         segments = self._segment_command(command_clean)
         
         confidence = 0.95
-        reasoning = "Root Router classified user request across domain specialists using Needle 2."
+        reasoning = "Root Router classified user request across domain specialists using Needle 3."
         steps: List[WorkflowStep] = []
 
-        # If single segment, query Needle 2 router
+        # If single segment, query Needle 3 router
         if len(segments) <= 1:
             domain, conf = self._classify_segment(command_clean)
             if conf:

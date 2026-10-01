@@ -43,7 +43,7 @@ export function Mascot() {
   useEffect(() => {
     if (runStatus === 'running') {
       setMood('thinking');
-      setSpeechBubbleText("Processing tool sequence with Needle 2...");
+      setSpeechBubbleText("Processing tool sequence with Needle 3...");
       setShowBubble(true);
 
       if (settings.animations && mascotRef.current) {

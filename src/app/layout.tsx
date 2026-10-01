@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "NEO-OS",
-  description: "Hierarchical AI-powered desktop simulation running Needle 2",
+  description: "Hierarchical AI-powered desktop simulation running Needle 3",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

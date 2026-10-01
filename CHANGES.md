@@ -4,6 +4,20 @@ All notable changes and architectural advancements in **NEO-OS** are documented 
 
 ---
 
+## [Version 1.1.0] - 2026-10-02
+
+### Needle 3 Model Upgrade (Cactus Compute)
+- **Model Upgrade to Needle 3 (`generation=3`)**: Upgraded core AI inference engine from Needle 2 to the latest **Needle 3** released by Cactus Compute (`cactus-needle` 3.0.6, `generation=3`).
+- **Local Model Weights Installation**: Downloaded and cached official Needle 3 model weights (`Cactus-Compute/needle3` &rarr; `needle3.cact`) for local-first, zero-cloud execution.
+- **Hierarchical Engine Migration**: Migrated Root Router Agent, all 5 Domain Specialist Agents (`FilesAgent`, `DesktopAgent`, `EditorAgent`, `BrowserAgent`, `SystemAgent`), and backend `AgentRunner` to run `Needle(..., generation=3)`.
+- **FastAPI Backend Synchronization**: Updated `/` root discovery endpoint and command execution loops to report `"model": "Needle 3 (cactus-needle)"`, `"generation": 3`.
+- **Frontend & Mission Control Alignment**: Updated `Settings.tsx`, `AgentExecutionGraph.tsx`, `layout.tsx`, `api-client.ts`, and `Mascot.tsx` to reflect Needle 3 engine status.
+- **Comprehensive Test Suite Verification**:
+  - `python -m pytest backend/tests -v`: 15/15 tests passing with Needle 3 local weights.
+  - `npm test`: 17/17 Mocha & Chai tests passing.
+
+---
+
 ## [Version 1.0.0] - 2026-10-02
 
 ### 1. Hierarchical Multi-Agent Architecture (Needle 2)

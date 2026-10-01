@@ -12,9 +12,9 @@ def get_system_info() -> dict:
     """Get system and AI model information."""
     tools_count = len(global_tool_registry.list_tools())
     return {
-        "os_name": "NeedleOS",
+        "os_name": "NEO-OS",
         "version": "1.0.0",
-        "ai_engine": "Needle 2 (cactus-needle, generation=2)",
+        "ai_engine": "Needle 3 (cactus-needle, generation=3)",
         "tools_registered": tools_count,
         "environment": "Virtual Simulated Desktop",
         "security": "Isolated in-memory virtual state (no host access)"

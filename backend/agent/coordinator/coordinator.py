@@ -47,7 +47,7 @@ class AgentCoordinator:
             runId=run_id,
             agent="root_router",
             type="model_call",
-            arguments={"model": "Needle 2", "generation": 2, "query": user_command}
+            arguments={"model": "Needle 3", "generation": 3, "query": user_command}
         ))
 
         # 3. Route user command into domain workflow

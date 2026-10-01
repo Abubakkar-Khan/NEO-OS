@@ -20,18 +20,18 @@ class AgentRunner:
         self._init_needle()
 
     def _init_needle(self):
-        """Build wrapped tools for Needle 2 with real-time event hooks."""
+        """Build wrapped tools for Needle 3 with real-time event hooks."""
         wrapped_tools = []
         for tool_def in global_tool_registry.list_tools():
             wrapped = self._create_wrapped_tool(tool_def.name)
             wrapped_tools.append(wrapped)
 
         try:
-            # Explicitly run Needle 2 using generation=2
-            self._needle_instance = Needle(tools=wrapped_tools, generation=2)
-            print(f"[AgentRunner] Successfully initialized Needle 2 (generation=2) with {len(wrapped_tools)} tools.")
+            # Explicitly run Needle 3 using generation=3
+            self._needle_instance = Needle(tools=wrapped_tools, generation=3)
+            print(f"[AgentRunner] Successfully initialized Needle 3 (generation=3) with {len(wrapped_tools)} tools.")
         except Exception as e:
-            print(f"[AgentRunner] Warning: Needle 2 initialization issue: {e}")
+            print(f"[AgentRunner] Warning: Needle 3 initialization issue: {e}")
             self._needle_instance = None
 
     def _create_wrapped_tool(self, tool_name: str):

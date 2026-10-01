@@ -68,7 +68,7 @@ export const AgentExecutionGraph: React.FC = () => {
               <span>MISSION CONTROL ROOM</span>
               <span className="w-1.5 h-1.5 rounded-full bg-[#10A37F] animate-pulse" />
             </div>
-            <div className="text-[10px] text-[#7A8A99]">Hierarchical Neural Dispatch &bull; Needle 2</div>
+            <div className="text-[10px] text-[#7A8A99]">Hierarchical Neural Dispatch &bull; Needle 3</div>
           </div>
         </div>
 
@@ -123,7 +123,7 @@ export const AgentExecutionGraph: React.FC = () => {
               <span className="w-2 h-2 rounded-full bg-[#10A37F] shadow-[0_0_8px_#10A37F]" />
               <span className="font-bold text-[#FFFFFF] text-[12px] tracking-tight">ROOT ROUTER AGENT</span>
               <span className="text-[9px] px-1.5 py-0.5 bg-[#13271D] text-[#10A37F] border border-[#10A37F]/30 rounded font-bold">
-                Needle 2 &bull; 14MB Local
+                Needle 3 &bull; Generation 3 Local
               </span>
             </div>
             <span className={`text-[10px] px-2 py-0.5 rounded border font-semibold ${

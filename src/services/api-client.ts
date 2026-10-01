@@ -118,7 +118,7 @@ class BackendClient {
           harness.addHandoff(evt.arguments);
         }
       } else if (typeLower === 'model_call') {
-        harness.setModelOutput(JSON.stringify(evt.arguments || { model: 'Needle 2', generation: 2 }, null, 2));
+        harness.setModelOutput(JSON.stringify(evt.arguments || { model: 'Needle 3', generation: 3 }, null, 2));
       } else if (typeLower === 'tool_selected') {
         if (evt.agent) {
           harness.setActiveAgent(evt.agent);

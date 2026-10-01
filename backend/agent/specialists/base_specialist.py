@@ -34,11 +34,11 @@ class BaseSpecialistAgent:
         try:
             self._needle = Needle(
                 tools=wrapped_tools,
-                generation=2,
+                generation=3,
                 stateless=True
             )
         except Exception as e:
-            print(f"[{self.display_name}] Needle 2 init warning: {e}")
+            print(f"[{self.display_name}] Needle 3 init warning: {e}")
             self._needle = None
 
     def _create_proxy(self, tool_name: str, raw_def, orig_fn):
@@ -126,7 +126,7 @@ class BaseSpecialistAgent:
 
     def execute(self, request: str, run_id: str, context: Optional[Any] = None) -> Dict[str, Any]:
         """
-        Execute request segment with Needle 2 and context-aware autonomous decision making.
+        Execute request segment with Needle 3 and context-aware autonomous decision making.
         Domain specialist inspects current OS context, formulates actions, and executes tools.
         """
         self._active_run_id = run_id
@@ -134,7 +134,7 @@ class BaseSpecialistAgent:
         reasoning = ""
         results = []
 
-        # Enhance query with context clues for Needle 2
+        # Enhance query with context clues for Needle 3
         enhanced_query = request
         if context and isinstance(context, dict):
             ctx_summary = []

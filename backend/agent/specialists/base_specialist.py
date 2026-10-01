@@ -125,15 +125,31 @@ class BaseSpecialistAgent:
         return tool(proxy)
 
     def execute(self, request: str, run_id: str, context: Optional[Any] = None) -> Dict[str, Any]:
-        """Execute request segment with Needle 2 and deterministic domain execution."""
+        """
+        Execute request segment with Needle 2 and context-aware autonomous decision making.
+        Domain specialist inspects current OS context, formulates actions, and executes tools.
+        """
         self._active_run_id = run_id
         confidence = 0.95
         reasoning = ""
         results = []
 
+        # Enhance query with context clues for Needle 2
+        enhanced_query = request
+        if context and isinstance(context, dict):
+            ctx_summary = []
+            if "open_file" in context and context["open_file"]:
+                ctx_summary.append(f"active file: {context['open_file']}")
+            if "current_directory" in context:
+                ctx_summary.append(f"cwd: {context['current_directory']}")
+            if "active_app" in context and context["active_app"]:
+                ctx_summary.append(f"focused app: {context['active_app']}")
+            if ctx_summary:
+                enhanced_query = f"{request} (Context: {', '.join(ctx_summary)})"
+
         if self._needle:
             try:
-                res = self._needle.run(query=request, max_steps=4)
+                res = self._needle.run(query=enhanced_query, max_steps=4)
                 if res.get("confidence") is not None and isinstance(res.get("confidence"), (int, float)):
                     confidence = float(res.get("confidence"))
                 reasoning = res.get("reasoning", "")
@@ -144,10 +160,12 @@ class BaseSpecialistAgent:
         # Check if Needle succeeded or if validation/execution failed or confidence is low
         has_errors = any(isinstance(r, str) and ("Validation error" in r or "Error executing" in r) for r in results)
         if not results or has_errors or confidence < 0.6:
-            fallback_res = self._fallback_execute(request, run_id)
+            fallback_res = self._fallback_execute(request, run_id, context)
             if fallback_res:
                 results = fallback_res
                 confidence = max(confidence, 0.95)
+                if not reasoning:
+                    reasoning = f"{self.display_name} autonomously evaluated request using virtual OS state context."
 
         self._active_run_id = None
         return {
@@ -157,6 +175,6 @@ class BaseSpecialistAgent:
             "results": results
         }
 
-    def _fallback_execute(self, request: str, run_id: str) -> List[Any]:
+    def _fallback_execute(self, request: str, run_id: str, context: Optional[Any] = None) -> List[Any]:
         """Domain-specific deterministic tool execution when query needs precise parameter extraction."""
         return []

@@ -1,5 +1,5 @@
 import re
-from typing import List, Any
+from typing import List, Any, Optional
 from backend.agent.specialists.base_specialist import BaseSpecialistAgent
 from backend.tools.registry import global_tool_registry
 from backend.events import AgentEvent, global_event_bus
@@ -16,7 +16,7 @@ class DesktopAgent(BaseSpecialistAgent):
         "maximize_app"
     ]
 
-    def _fallback_execute(self, request: str, run_id: str) -> List[Any]:
+    def _fallback_execute(self, request: str, run_id: str, context: Optional[Any] = None) -> List[Any]:
         low = request.lower()
         results = []
 

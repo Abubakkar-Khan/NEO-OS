@@ -258,8 +258,10 @@ export class LocalNeedleAdapter implements NeedleAdapter {
       }
 
       // ─── Write / type / insert text ───────────────────────────
-      if (/\b(write|type|insert|add)\b/i.test(low) && !/\bfile\b/i.test(low)) {
-        const m = part.match(
+      if (/\b(write|type|insert|add)\b/i.test(low)) {
+        // Strip trailing 'into the file' or 'in the file' if present
+        const cleanedPart = part.replace(/\s+(?:in(?:to)?\s+(?:the\s+)?file)$/i, '');
+        const m = cleanedPart.match(
           /(?:write|type|insert|add)\s+(?:the\s+)?(?:text\s+)?(?:in(?:to)?\s+(?:the\s+)?(?:file\s+)?)?(.+)/i,
         );
         if (m) {

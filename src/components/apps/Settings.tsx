@@ -31,7 +31,7 @@ export default function Settings() {
           <div className="px-2 space-y-1.5 text-xs">
             <div className="flex justify-between">
               <span className="text-[#666666]">Product</span>
-              <span className="font-bold">NeedleOS</span>
+              <span className="font-bold">NEO-OS</span>
             </div>
             <div className="flex justify-between">
               <span className="text-[#666666]">OS Version</span>

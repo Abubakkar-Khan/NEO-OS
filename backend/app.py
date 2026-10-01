@@ -11,7 +11,7 @@ from backend.tools.registry import global_tool_registry
 from backend.agent.runner import global_agent_runner
 import backend.tools # Ensure tools are initialized
 
-app = FastAPI(title="NeedleOS Backend", version="1.0.0")
+app = FastAPI(title="NEO-OS Backend", version="1.0.0")
 
 # Enable CORS for Next.js frontend
 app.add_middleware(
@@ -59,19 +59,38 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 # Hook event bus into websocket broadcast
+_main_loop: Optional[asyncio.AbstractEventLoop] = None
+
+@app.on_event("startup")
+async def startup_event():
+    global _main_loop
+    _main_loop = asyncio.get_running_loop()
+
 def on_agent_event(event: AgentEvent):
-    asyncio.create_task(manager.broadcast({
+    global _main_loop
+    payload = {
         "type": "agent_event",
         "event": event.model_dump(),
         "state": global_os_state.to_dict() if event.type == "state_changed" else None
-    }))
+    }
+    
+    if _main_loop and _main_loop.is_running():
+        _main_loop.call_soon_threadsafe(
+            lambda: asyncio.create_task(manager.broadcast(payload))
+        )
+    else:
+        try:
+            loop = asyncio.get_running_loop()
+            loop.create_task(manager.broadcast(payload))
+        except Exception:
+            pass
 
 global_event_bus.subscribe(on_agent_event)
 
 @app.get("/")
 def root():
     return {
-        "product": "NeedleOS Backend",
+        "product": "NEO-OS Backend",
         "status": "online",
         "model": "Needle 2 (cactus-needle)",
         "generation": 2

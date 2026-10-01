@@ -32,7 +32,7 @@ export const Harness: React.FC = () => {
             <span className="w-2 h-2 rounded-full bg-[#3B82F6]" />
             <span className="w-2 h-2 rounded-full bg-[#8B5CF6]" />
           </div>
-          <h1 className="font-bold tracking-widest text-[#FFFFFF] text-xs">NEEDLE HIERARCHICAL HARNESS</h1>
+          <h1 className="font-bold tracking-widest text-[#FFFFFF] text-xs">NEO-OS HARNESS</h1>
           <span className="text-[10px] bg-[#1A1A1A] border border-[#333333] px-2 py-0.5 rounded text-[#888888]">
             Multi-Agent Pipeline
           </span>

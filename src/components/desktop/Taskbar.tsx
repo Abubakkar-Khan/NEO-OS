@@ -48,7 +48,7 @@ export function Taskbar({ view, onViewChange }: TaskbarProps) {
             <span className="w-1.5 h-1.5 rounded-full bg-[#10A37F]" />
             <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6]" />
           </div>
-          <span className="tracking-tight text-[11px] font-mono">NeedleOS</span>
+          <span className="tracking-tight text-[11px] font-mono">NEO-OS</span>
         </div>
 
         {/* Running Windows */}

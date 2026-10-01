@@ -9,9 +9,14 @@ NEO-OS is an in-browser operating system simulation controlled through natural-l
 ## Table of Contents
 
 - [Overview](#overview)
+- [System & Architecture Diagrams](#system--architecture-diagrams)
+  - [1. Full System Architecture Diagram](#1-full-system-architecture-diagram)
+  - [2. End-to-End Data Flow Diagram](#2-end-to-end-data-flow-diagram)
+  - [3. Execution Sequence Diagram](#3-execution-sequence-diagram)
+  - [4. Multi-Agent Hierarchy & Tool Catalogs](#4-multi-agent-hierarchy--tool-catalogs)
+  - [5. State & Permission Lifecycle Diagram](#5-state--permission-lifecycle-diagram)
 - [Hierarchical Multi-Agent Architecture](#hierarchical-multi-agent-architecture)
   - [Architectural Principles](#architectural-principles)
-  - [Agent Hierarchy Diagram](#agent-hierarchy-diagram)
   - [Domain Specialist Agents](#domain-specialist-agents)
 - [Swiss 60-30-10 Design System](#swiss-60-30-10-design-system)
 - [Control Room Interface & Telemetry](#control-room-interface--telemetry)
@@ -36,6 +41,270 @@ NEO-OS simulates a desktop operating system with windows, applications, files, a
 
 ---
 
+## System & Architecture Diagrams
+
+### 1. Full System Architecture Diagram
+
+The system operates across a dual-tier model: a Next.js 16 frontend rendering the desktop environment and control room harness, paired with a FastAPI backend running Needle 3 on local weights with a real-time event bus.
+
+```mermaid
+flowchart TD
+    subgraph Client["Frontend Client (Next.js 16 + React 19 + TypeScript)"]
+        UI_Desktop["Desktop Shell & Window Manager"]
+        UI_Harness["Harness Mission Control Room"]
+        UI_Mascot["Interactive Needle Mascot"]
+        Store_Desktop["Zustand Desktop Store"]
+        Store_Harness["Zustand Harness Store"]
+        UI_Desktop --> Store_Desktop
+        UI_Harness --> Store_Harness
+        UI_Mascot --> Store_Harness
+    end
+
+    subgraph Transport["Transport Layer"]
+        HTTP["HTTP REST API (/api/run, /api/state, /api/tools)"]
+        WS["WebSocket Duplex Channel (/ws)"]
+    end
+
+    subgraph Server["Backend Server (FastAPI + Python 3.13)"]
+        API_Router["FastAPI Application Router"]
+        Conn_Mgr["WebSocket Connection Manager"]
+        Event_Bus["Authoritative Real-Time Event Bus"]
+        Perm_Gate["Permission & Validation Layer"]
+        Executor["Atomic Tool Executor"]
+    end
+
+    subgraph Agent_Core["Hierarchical AI Engine (Needle 3, generation=3)"]
+        Coord["Agent Coordinator"]
+        Router["Root Router Agent (5 Routing Tools)"]
+        subgraph Specialists["Domain Specialist Agents"]
+            Desktop_Sp["Desktop Specialist"]
+            Files_Sp["Files Specialist"]
+            Editor_Sp["Editor Specialist"]
+            Browser_Sp["Browser Specialist"]
+            System_Sp["System Specialist"]
+        end
+        Local_Weights[("Local Needle 3 Weights (needle3.cact)")]
+    end
+
+    subgraph State_Layer["In-Memory Virtual OS State"]
+        VFS[("Virtual Filesystem (In-Memory Tree)")]
+        Proc_Table["Window & Process Table"]
+        Editor_Buffer["Text Editor Buffer State"]
+        Browser_Hist["Browser History & Search Index"]
+    end
+
+    Store_Desktop <--> HTTP
+    Store_Harness <--> WS
+    HTTP --> API_Router
+    WS <--> Conn_Mgr
+    Conn_Mgr <--> Event_Bus
+    API_Router --> Coord
+    Coord --> Router
+    Router --> Specialists
+    Specialists --> Local_Weights
+    Specialists --> Perm_Gate
+    Perm_Gate --> Executor
+    Executor --> State_Layer
+    State_Layer --> Event_Bus
+    Event_Bus --> Conn_Mgr
+```
+
+---
+
+### 2. End-to-End Data Flow Diagram
+
+Illustrates the progression of a user instruction through intent decomposition, specialist execution, state mutation, and real-time telemetry streaming.
+
+```mermaid
+flowchart LR
+    A["User Input (Text / Speech)"] --> B["Command Input Bar"]
+    B --> C["FastAPI /api/run"]
+    C --> D["Agent Coordinator"]
+    D --> E["Root Router Agent (Needle 3)"]
+    E --> F["Workflow Decomposition (Ordered Steps + Dependencies)"]
+    F --> G["Domain Specialists (Scoped Execution)"]
+    G --> H["Context Injection (VFS & Window State)"]
+    H --> I["Permission Gate (Automatic / Confirmation)"]
+    I --> J["Atomic Tool Executor"]
+    J --> K["Virtual OS State Mutation"]
+    K --> L["Event Bus Broadcast"]
+    L --> M["WebSocket Push (/ws)"]
+    M --> N["Mission Control Telemetry & Desktop UI Sync"]
+```
+
+---
+
+### 3. Execution Sequence Diagram
+
+Detailed chronology showing message passing, event emissions, context extraction, and UI updates for a compound user request.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as User
+    participant Frontend as Next.js Desktop / Harness
+    participant Backend as FastAPI Server
+    participant Bus as Event Bus
+    participant Coordinator as Agent Coordinator
+    participant Router as Root Router Agent (Needle 3)
+    participant Specialist as Domain Specialist
+    participant Executor as Tool Executor
+    participant State as Virtual OS State
+
+    User->>Frontend: Types or speaks compound command
+    Frontend->>Backend: POST /api/run { command: "..." }
+    Backend->>Coordinator: Initialize execution pipeline
+    Coordinator->>Bus: Emit user_input event
+    Bus-->>Frontend: WebSocket push: user_input
+    Coordinator->>Bus: Emit model_call (Needle 3)
+    Coordinator->>Router: Decompose request into domain workflow
+    Router-->>Coordinator: Return Workflow (steps, dependencies, confidence)
+    Coordinator->>Bus: Emit route_selected (workflow topology)
+    Bus-->>Frontend: WebSocket push: route_selected
+
+    loop For each workflow step
+        Coordinator->>State: Extract domain state snapshot
+        State-->>Coordinator: Return context (open_file, current_dir, windows)
+        Coordinator->>Bus: Emit handoff (source: router, target: specialist)
+        Bus-->>Frontend: WebSocket push: handoff
+        Coordinator->>Specialist: Execute sub-task with context
+        Specialist->>Bus: Emit tool_selected & tool_started
+        Bus-->>Frontend: WebSocket push: tool telemetry
+        Specialist->>Executor: Execute atomic tool (e.g., create_file)
+        Executor->>State: Mutate in-memory virtual state
+        State-->>Executor: State mutation confirmed
+        Executor->>Bus: Emit tool_completed & state_changed
+        Bus-->>Frontend: WebSocket push: tool_completed & state_changed
+        Specialist-->>Coordinator: Step execution completed
+    end
+
+    Coordinator->>Bus: Emit agent_finished event
+    Bus-->>Frontend: WebSocket push: agent_finished
+    Backend-->>Frontend: Return run summary { status: "completed" }
+    Frontend->>User: Update Desktop Windows & Mascot message
+```
+
+---
+
+### 4. Multi-Agent Hierarchy & Tool Catalogs
+
+Displays the separation of concerns between the Root Router Agent and Domain Specialists, showing each agent's strictly bounded tool catalog.
+
+```mermaid
+flowchart TD
+    Prompt["User Request: Text or Speech"] --> Router["Root Router Agent (Needle 3, generation=3)"]
+
+    subgraph RouterCatalog["Router Routing Tools (5)"]
+        R1["route_to_desktop"]
+        R2["route_to_files"]
+        R3["route_to_editor"]
+        R4["route_to_browser"]
+        R5["route_to_system"]
+    end
+
+    Router --- RouterCatalog
+
+    Router -->|Desktop Intent| D_Agent["Desktop Specialist Agent"]
+    Router -->|Files Intent| F_Agent["Files Specialist Agent"]
+    Router -->|Editor Intent| E_Agent["Editor Specialist Agent"]
+    Router -->|Browser Intent| B_Agent["Browser Specialist Agent"]
+    Router -->|System Intent| S_Agent["System Specialist Agent"]
+
+    subgraph D_Tools["Desktop Tools (5)"]
+        open_app["open_app"]
+        close_app["close_app"]
+        focus_app["focus_app"]
+        minimize_app["minimize_app"]
+        maximize_app["maximize_app"]
+    end
+
+    subgraph F_Tools["Files Tools (9)"]
+        list_files["list_files"]
+        create_file["create_file"]
+        create_folder["create_folder"]
+        read_file["read_file"]
+        write_file["write_file"]
+        rename_file["rename_file"]
+        rename_folder["rename_folder"]
+        move_file["move_file"]
+        delete_file["delete_file (Requires Confirmation)"]
+    end
+
+    subgraph E_Tools["Editor Tools (5)"]
+        open_editor["open_editor"]
+        insert_text["insert_text"]
+        replace_text["replace_text"]
+        save_file["save_file"]
+        save_as["save_as"]
+    end
+
+    subgraph B_Tools["Browser Tools (4)"]
+        open_browser["open_browser"]
+        navigate["navigate"]
+        search["search"]
+        go_back["go_back"]
+    end
+
+    subgraph S_Tools["System Tools (4)"]
+        get_time["get_time"]
+        get_system_info["get_system_info"]
+        change_setting["change_setting"]
+        reset_desktop["reset_desktop (Requires Confirmation)"]
+    end
+
+    D_Agent --- D_Tools
+    F_Agent --- F_Tools
+    E_Agent --- E_Tools
+    B_Agent --- B_Tools
+    S_Agent --- S_Tools
+
+    D_Tools --> Exec["Authoritative Tool Executor"]
+    F_Tools --> Exec
+    E_Tools --> Exec
+    B_Tools --> Exec
+    S_Tools --> Exec
+
+    Exec --> VOS[("Authoritative Virtual OS State")]
+```
+
+---
+
+### 5. State & Permission Lifecycle Diagram
+
+Finite-state model representing how instructions transition through validation, permission checks, execution, and broadcast.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle: OS Boot & WebSocket Handshake
+    Idle --> IngestingCommand: User Input via Prompt / Speech
+    IngestingCommand --> RoutingWorkflow: Root Router Decomposition
+    RoutingWorkflow --> ContextInjection: Snapshot Current OS State
+    ContextInjection --> PermissionCheck: Specialist Selects Tool
+
+    state PermissionCheck {
+        [*] --> CheckLevel
+        CheckLevel --> AutomaticPermission: Level == Automatic
+        CheckLevel --> ConfirmationRequired: Level == Require Confirmation
+        ConfirmationRequired --> Approved: User Approves Action
+        ConfirmationRequired --> Blocked: User Cancels Action
+    }
+
+    AutomaticPermission --> ToolExecuting
+    Approved --> ToolExecuting
+    Blocked --> StepAborted: Emit Warning Telemetry
+
+    ToolExecuting --> StateMutating: In-Memory VFS / Window Update
+    StateMutating --> EventBroadcasting: Emit tool_completed & state_changed
+    EventBroadcasting --> StepCompleted: Check Remaining Workflow Steps
+    StepAborted --> StepCompleted
+
+    StepCompleted --> ContextInjection: Next Step in Workflow
+    StepCompleted --> Finished: All Steps Completed
+    Finished --> Idle: Agent Finished Telemetry Emitted
+```
+
+---
+
 ## Hierarchical Multi-Agent Architecture
 
 ### Architectural Principles
@@ -44,36 +313,6 @@ NEO-OS simulates a desktop operating system with windows, applications, files, a
 2. **Autonomous Domain Specialists**: Each specialist is equipped only with tools required for its domain, preventing tool selection collisions.
 3. **Context Injection**: Before a specialist executes, the agent coordinator passes a snapshot of current system state (e.g. active file buffer, current directory tree, open windows). The specialist inspects this context to resolve references like "this note", "save it", or "here".
 4. **Calibrated Confidence**: Built on Needle 3's calibrated confidence rating, ensuring fallback handling when ambiguous user phrases arise.
-
-### Agent Hierarchy Diagram
-
-```text
-User Request (Text or Voice)
-              |
-              v
-     Root Router Agent (Needle 3)
-              |
-   +----------+----------+----------+----------+
-   |          |          |          |          |
-   v          v          v          v          v
-Desktop     Files      Editor    Browser     System
-Specialist  Specialist Specialist Specialist Specialist
-(5 Tools)   (9 Tools)  (5 Tools)  (4 Tools)  (4 Tools)
-   |          |          |          |          |
-   +----------+----------+----------+----------+
-                         |
-                         v
-             Authoritative Tool Executor
-                         |
-                         v
-              Virtual OS State Store
-                         |
-                         v
-               Real-Time Event Bus
-                         |
-                         v
-             Next.js Control Room & UI
-```
 
 ### Domain Specialist Agents
 

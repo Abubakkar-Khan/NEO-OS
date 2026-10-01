@@ -15,6 +15,13 @@ All notable changes and architectural advancements in **NEO-OS** are documented 
 - **Comprehensive Test Suite Verification**:
   - `python -m pytest backend/tests -v`: 15/15 tests passing with Needle 3 local weights.
   - `npm test`: 17/17 Mocha & Chai tests passing.
+- **Architectural & Data Flow Diagrams**:
+  - Added 5 comprehensive Mermaid diagrams in `README.md`:
+    1. Full System Architecture (Frontend, Transport, Server, Hierarchical Agent Core, Virtual OS State).
+    2. End-to-End Data Flow Pipeline.
+    3. Execution Sequence Diagram (Message chronology from user input to WebSocket UI update).
+    4. Multi-Agent Hierarchy & Bounded Catalogs.
+    5. State & Permission Lifecycle State Machine.
 
 ---
 

@@ -3,35 +3,82 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useHarnessStore } from '@/stores/harness-store';
 import { useDesktopStore } from '@/stores/desktop-store';
-import { Sparkles, X, MessageSquare } from 'lucide-react';
+import { backendClient } from '@/services/api-client';
+import { agentRunner } from '@/agent/runner';
+import { audioEngine } from '@/lib/audio';
+import { Sparkles, X, ChevronRight, Terminal } from 'lucide-react';
 import gsap from 'gsap';
 
-export type MascotMood = 'neutral' | 'thinking' | 'happy' | 'confused' | 'speaking';
+export type MascotMood = 'neutral' | 'curious' | 'thinking' | 'happy' | 'alert';
 
 export function Mascot() {
   const { runStatus, reasoning, events, currentCommand } = useHarnessStore();
   const { settings } = useDesktopStore();
-  
+
   const [mood, setMood] = useState<MascotMood>('neutral');
   const [speechBubbleText, setSpeechBubbleText] = useState<string | null>(
-    "Hi! I'm Needle. Type or speak a command, or ask \"What's on screen?\""
+    "Ready. Type or speak a command, or ask \"What's on screen?\""
   );
   const [showBubble, setShowBubble] = useState(true);
+  const [pupilOffset, setPupilOffset] = useState({ x: 0, y: 0 });
+  const [isBlinking, setIsBlinking] = useState(false);
 
   const mascotRef = useRef<HTMLDivElement>(null);
   const bubbleRef = useRef<HTMLDivElement>(null);
-  const leftEyeRef = useRef<HTMLSpanElement>(null);
-  const rightEyeRef = useRef<HTMLSpanElement>(null);
 
-  // GSAP: Idle floating animation
+  // Alive: Mouse Pupil Tracking
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!mascotRef.current) return;
+      const rect = mascotRef.current.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      const deltaX = e.clientX - centerX;
+      const deltaY = e.clientY - centerY;
+      const dist = Math.hypot(deltaX, deltaY);
+
+      if (dist > 0) {
+        const maxDist = 4; // Max pupil travel distance in px
+        const factor = Math.min(dist / 300, 1);
+        setPupilOffset({
+          x: (deltaX / dist) * maxDist * factor,
+          y: (deltaY / dist) * maxDist * factor,
+        });
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  // Alive: Natural Spontaneous Blinking Loop
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    const scheduleBlink = () => {
+      const nextInterval = 3500 + Math.random() * 4000;
+      timeoutId = setTimeout(() => {
+        setIsBlinking(true);
+        setTimeout(() => {
+          setIsBlinking(false);
+          scheduleBlink();
+        }, 160);
+      }, nextInterval);
+    };
+
+    scheduleBlink();
+    return () => clearTimeout(timeoutId);
+  }, []);
+
+  // Alive: Idle Breathing Floating Animation via GSAP
   useEffect(() => {
     if (settings.animations && mascotRef.current) {
       const floatTween = gsap.to(mascotRef.current, {
-        y: -4,
-        duration: 1.8,
+        y: -5,
+        duration: 2.2,
         repeat: -1,
         yoyo: true,
-        ease: 'power1.inOut'
+        ease: 'sine.inOut'
       });
       return () => {
         floatTween.kill();
@@ -39,180 +86,187 @@ export function Mascot() {
     }
   }, [settings.animations]);
 
-  // React to Agent Run Status & Events
+  // Reactive state management when agent runs
   useEffect(() => {
     if (runStatus === 'running') {
       setMood('thinking');
-      setSpeechBubbleText("Processing tool sequence with Needle 3...");
+      setSpeechBubbleText("Processing through autonomous specialists...");
       setShowBubble(true);
 
       if (settings.animations && mascotRef.current) {
         gsap.to(mascotRef.current, {
-          scale: 1.06,
-          duration: 0.3,
+          scale: 1.05,
+          duration: 0.25,
           ease: 'power2.out'
         });
       }
     } else if (runStatus === 'completed') {
       setMood('happy');
-      // Look for latest meaningful tool completion or reasoning
+      if (settings.sound) {
+        audioEngine.playSuccess();
+      }
+
       const lastCompleted = [...events].reverse().find(e => e.type === 'tool_completed' || e.type === 'TOOL_COMPLETED');
       if (reasoning) {
         setSpeechBubbleText(reasoning);
       } else if (lastCompleted && lastCompleted.result) {
-        const text = typeof lastCompleted.result === 'string' 
-          ? lastCompleted.result 
-          : JSON.stringify(lastCompleted.result).substring(0, 120);
-        setSpeechBubbleText(text);
+        setSpeechBubbleText(`Done: ${String(lastCompleted.result)}`);
       } else {
-        setSpeechBubbleText("All tasks completed successfully!");
+        setSpeechBubbleText("Workflow executed successfully.");
       }
       setShowBubble(true);
 
       if (settings.animations && mascotRef.current) {
-        gsap.timeline()
-          .to(mascotRef.current, { y: -12, duration: 0.15, ease: 'power2.out' })
-          .to(mascotRef.current, { y: 0, duration: 0.2, ease: 'bounce.out' })
-          .to(mascotRef.current, { scale: 1, duration: 0.1 });
+        gsap.to(mascotRef.current, {
+          scale: 1,
+          duration: 0.3,
+          ease: 'elastic.out(1, 0.5)'
+        });
       }
 
+      // Return to neutral after 5 seconds
       const timer = setTimeout(() => {
         setMood('neutral');
       }, 5000);
       return () => clearTimeout(timer);
     } else if (runStatus === 'error') {
-      setMood('confused');
-      const lastFailed = [...events].reverse().find(e => e.type === 'tool_failed' || e.type === 'TOOL_FAILED' || e.type === 'SYSTEM_ERROR');
-      setSpeechBubbleText(lastFailed?.error || "I ran into an issue executing that command.");
-      setShowBubble(true);
-
-      if (settings.animations && mascotRef.current) {
-        gsap.timeline()
-          .to(mascotRef.current, { x: -6, duration: 0.06 })
-          .to(mascotRef.current, { x: 6, duration: 0.06 })
-          .to(mascotRef.current, { x: -4, duration: 0.06 })
-          .to(mascotRef.current, { x: 0, duration: 0.06 });
+      setMood('alert');
+      if (settings.sound) {
+        audioEngine.playAlert();
       }
-    } else {
-      setMood('neutral');
+      setSpeechBubbleText("An action could not be completed.");
+      setShowBubble(true);
     }
-  }, [runStatus, reasoning, events, settings.animations]);
+  }, [runStatus, reasoning, events, settings.animations, settings.sound]);
 
-  // Animate Speech Bubble pop in
-  useEffect(() => {
-    if (showBubble && speechBubbleText && bubbleRef.current && settings.animations) {
+  // Interactive Click Poke
+  const handlePoke = () => {
+    if (settings.sound) {
+      audioEngine.playPop();
+    }
+    setMood('curious');
+    setShowBubble(true);
+    setSpeechBubbleText("Listening! What would you like me to do next?");
+
+    if (settings.animations && mascotRef.current) {
       gsap.fromTo(
-        bubbleRef.current,
-        { scale: 0.85, opacity: 0, y: 10 },
-        { scale: 1, opacity: 1, y: 0, duration: 0.25, ease: 'back.out(2)' }
+        mascotRef.current,
+        { scale: 0.92, rotate: -4 },
+        { scale: 1, rotate: 0, duration: 0.4, ease: 'back.out(2)' }
       );
-    }
-  }, [speechBubbleText, showBubble, settings.animations]);
-
-  // Render Eyes based on Mood: dots, hyphen, cross, or happy
-  const renderEyes = () => {
-    switch (mood) {
-      case 'thinking':
-        return (
-          <div className="flex items-center gap-2 font-mono text-sm font-bold text-[#FFFFFF] select-none">
-            <span ref={leftEyeRef} className="animate-pulse">-</span>
-            <span ref={rightEyeRef} className="animate-pulse">-</span>
-          </div>
-        );
-      case 'happy':
-        return (
-          <div className="flex items-center gap-2 font-mono text-xs font-bold text-[#FFFFFF] select-none">
-            <span ref={leftEyeRef}>^</span>
-            <span ref={rightEyeRef}>^</span>
-          </div>
-        );
-      case 'confused':
-        return (
-          <div className="flex items-center gap-2 font-mono text-sm font-bold text-[#FF5555] select-none">
-            <span ref={leftEyeRef}>×</span>
-            <span ref={rightEyeRef}>×</span>
-          </div>
-        );
-      case 'neutral':
-      default:
-        return (
-          <div className="flex items-center gap-2.5 font-mono text-xs font-bold text-[#FFFFFF] select-none">
-            <span ref={leftEyeRef} className="w-1.5 h-1.5 bg-[#FFFFFF] rounded-full inline-block" />
-            <span ref={rightEyeRef} className="w-1.5 h-1.5 bg-[#FFFFFF] rounded-full inline-block" />
-          </div>
-        );
     }
   };
 
-  const handleMascotClick = () => {
-    setShowBubble(!showBubble);
-    if (!showBubble && !speechBubbleText) {
-      setSpeechBubbleText("Ready for your next instruction!");
+  const handleQuickCommand = async (cmd: string) => {
+    if (settings.sound) {
+      audioEngine.playClick();
+    }
+    try {
+      await backendClient.runCommand(cmd);
+    } catch {
+      await agentRunner.run(cmd);
     }
   };
 
   return (
-    <div className="fixed bottom-14 right-5 z-40 flex flex-col items-end pointer-events-none font-sans">
-      {/* Speech Bubble Output */}
+    <div className="fixed bottom-20 right-6 z-40 flex flex-col items-end select-none pointer-events-none">
+      {/* Speech Balloon */}
       {showBubble && speechBubbleText && (
-        <div 
+        <div
           ref={bubbleRef}
-          className="pointer-events-auto mb-2 max-w-xs sm:max-w-sm bg-[#FFFFFF] text-[#111111] border-2 border-[#111111] p-3 shadow-xl rounded-md text-xs relative font-mono"
+          className="pointer-events-auto mb-3 max-w-xs bg-[#FFFFFF] border border-[#E5E5E0] shadow-xl rounded-2xl p-3.5 text-xs text-[#111111] transition-all"
         >
-          <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-[#EAEAEA]">
-            <div className="flex items-center gap-1.5 font-bold text-[11px] text-[#111111]">
-              <div className="flex items-center gap-1 mr-0.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#10A37F]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-[#8B5CF6]" />
-              </div>
-              <span className="font-mono tracking-tight">NEEDLE AGENT</span>
+          <div className="flex items-start justify-between gap-2 mb-1.5">
+            <div className="flex items-center gap-1.5 font-dot text-[10px] text-[#666666]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#D71920]" />
+              <span>NEEDLE 3 OS</span>
             </div>
-            <button 
+            <button
               onClick={() => setShowBubble(false)}
-              className="text-[#888888] hover:text-[#111111] p-0.5 rounded-sm transition-colors"
-              title="Close message"
+              className="text-[#999999] hover:text-[#111111] p-0.5 rounded transition-colors"
             >
               <X size={12} />
             </button>
           </div>
 
-          <div className="leading-relaxed text-[11px] max-h-36 overflow-y-auto break-words text-[#222222]">
+          <p className="text-[12px] leading-relaxed text-[#222222] font-sans">
             {speechBubbleText}
-          </div>
+          </p>
 
-          {/* Speech Bubble Triangle pointer pointing to circle */}
-          <div className="absolute -bottom-2 right-5 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-[#111111]" />
-          <div className="absolute -bottom-[6px] right-5 w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[7px] border-t-[#FFFFFF]" />
+          {/* Quick suggestions when idle */}
+          {runStatus !== 'running' && (
+            <div className="mt-2.5 pt-2 border-t border-[#F0F0EC] flex flex-wrap gap-1">
+              {[
+                "Open editor and write Hello",
+                "Create Notes folder",
+                "Search Next.js docs"
+              ].map((suggestion) => (
+                <button
+                  key={suggestion}
+                  onClick={() => handleQuickCommand(suggestion)}
+                  className="text-[10px] px-2 py-0.5 rounded-full bg-[#F4F4F0] hover:bg-[#111111] hover:text-[#FFFFFF] text-[#555555] transition-colors flex items-center gap-1 cursor-pointer"
+                >
+                  <span>{suggestion}</span>
+                  <ChevronRight size={10} />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
-      {/* Retro Circular Mascot with 60-30-10 accents */}
+      {/* Nothing OS Styled Tactile Mascot Sphere */}
       <div
         ref={mascotRef}
-        onClick={handleMascotClick}
-        className="pointer-events-auto cursor-pointer w-12 h-12 rounded-full bg-[#111111] border-2 border-[#262626] hover:border-[#10A37F] shadow-xl flex flex-col items-center justify-center transition-all hover:scale-105 active:scale-95 group relative select-none"
-        title="Needle Mascot (Click to toggle status speech)"
+        onClick={handlePoke}
+        title="Needle 3 AI Companion (Click to poke)"
+        className="pointer-events-auto w-14 h-14 rounded-full bg-[#FFFFFF] border border-[#E0E0DB] shadow-lg flex items-center justify-center cursor-pointer relative hover:shadow-xl transition-shadow"
       >
-        {/* Subtle ChatGPT colored orbital glow ring when active */}
-        {runStatus === 'running' && (
-          <div className="absolute -inset-1 rounded-full border border-[#10A37F]/60 animate-ping pointer-events-none" />
-        )}
+        {/* Signature Nothing Red Dot Accent */}
+        <div className="absolute top-1.5 right-2 w-2 h-2 rounded-full bg-[#D71920] shadow-[0_0_6px_rgba(215,25,32,0.6)] animate-pulse" />
 
-        {/* Face */}
-        <div className="flex flex-col items-center justify-center">
-          {renderEyes()}
-          {/* Subtle mouth */}
-          <div className={`mt-0.5 transition-all ${
-            mood === 'happy' ? 'w-2 h-1 border-b-2 border-[#10A37F] rounded-b-full' :
-            mood === 'thinking' ? 'w-1 h-1 bg-[#3B82F6] rounded-full animate-ping' :
-            mood === 'confused' ? 'w-2 h-0.5 bg-[#FF5555]' :
-            'w-1.5 h-0.5 bg-[#666666] rounded-full'
-          }`} />
+        {/* Eyes & Expressions */}
+        <div className="flex items-center gap-3">
+          {/* Left Eye */}
+          <div className="w-3.5 h-3.5 rounded-full bg-[#F0F0EA] flex items-center justify-center overflow-hidden border border-[#D5D5CF]">
+            {isBlinking ? (
+              <span className="w-2.5 h-[2px] bg-[#111111]" />
+            ) : mood === 'thinking' ? (
+              <span className="w-2.5 h-[2px] bg-[#111111] animate-pulse" />
+            ) : mood === 'happy' ? (
+              <span className="text-[11px] font-bold text-[#111111] leading-none">^</span>
+            ) : mood === 'alert' ? (
+              <span className="text-[10px] font-bold text-[#D71920] leading-none">×</span>
+            ) : (
+              <span
+                className="w-2 h-2 rounded-full bg-[#111111] transition-transform duration-75"
+                style={{
+                  transform: `translate(${pupilOffset.x}px, ${pupilOffset.y}px)`
+                }}
+              />
+            )}
+          </div>
+
+          {/* Right Eye */}
+          <div className="w-3.5 h-3.5 rounded-full bg-[#F0F0EA] flex items-center justify-center overflow-hidden border border-[#D5D5CF]">
+            {isBlinking ? (
+              <span className="w-2.5 h-[2px] bg-[#111111]" />
+            ) : mood === 'thinking' ? (
+              <span className="w-2.5 h-[2px] bg-[#111111] animate-pulse" />
+            ) : mood === 'happy' ? (
+              <span className="text-[11px] font-bold text-[#111111] leading-none">^</span>
+            ) : mood === 'alert' ? (
+              <span className="text-[10px] font-bold text-[#D71920] leading-none">×</span>
+            ) : (
+              <span
+                className="w-2 h-2 rounded-full bg-[#111111] transition-transform duration-75"
+                style={{
+                  transform: `translate(${pupilOffset.x}px, ${pupilOffset.y}px)`
+                }}
+              />
+            )}
+          </div>
         </div>
-
-        {/* Small tooltip hint */}
-        <span className="sr-only">NeedleOS Mascot</span>
       </div>
     </div>
   );

@@ -8,50 +8,117 @@
     height: 100vh;
     font-size: 0.875rem;
     color: #111111;
-    background-color: #F5F5F2;
+    background-color: #F4F4F0;
+    font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: #F5F5F2;
-  border-left: 1px solid #D9D9D9;
-}
-::-webkit-scrollbar-thumb {
-  background: #888888;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #333333;
+/* Nothing OS Utilitarian Dot Matrix Accents & Grid */
+.bg-nothing-canvas {
+  background-color: #F4F4F0;
+  background-image: 
+    radial-gradient(circle at 1px 1px, rgba(17, 17, 17, 0.08) 1px, transparent 0);
+  background-size: 24px 24px;
 }
 
-/* Selection */
+.bg-nothing-dark-canvas {
+  background-color: #0E1012;
+  background-image: 
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.07) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+/* Nothing OS Signature Red & Glyph Light Accents */
+:root {
+  --nothing-red: #D71920;
+  --nothing-amber: #FF7A00;
+  --nothing-smoke: #181A1D;
+  --nothing-stone: #E6E6E1;
+  --nothing-paper: #FDFCFA;
+}
+
+/* Dot-Matrix Badge / Text Style */
+.font-dot {
+  letter-spacing: 0.12em;
+  font-family: var(--font-geist-mono), monospace;
+  text-transform: uppercase;
+}
+
+/* Smooth Tactile Window Elevation */
+.window-elevation {
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 20px 40px -8px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+.window-elevation-active {
+  box-shadow: 
+    0 10px 15px -3px rgba(0, 0, 0, 0.08),
+    0 30px 60px -12px rgba(0, 0, 0, 0.18),
+    0 0 0 1px rgba(0, 0, 0, 0.14);
+}
+
+/* Dock Glass Elevation */
+.dock-glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 
+    0 10px 30px -5px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+/* Custom Ergonomic Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(17, 17, 17, 0.2);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(17, 17, 17, 0.4);
+}
+
+/* Selection Color */
 ::selection {
-  background-color: #111111;
+  background-color: #D71920;
   color: #FFFFFF;
 }
 
-/* Grid Pattern */
-.bg-desktop-pattern {
-  background-image: radial-gradient(#D9D9D9 1px, transparent 1px);
-  background-size: 20px 20px;
-}
-
-/* Animations */
-@keyframes windowOpen {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
+/* Alive Breathing Keyframes */
+@keyframes glyphPulse {
+  0%, 100% {
     opacity: 1;
     transform: scale(1);
   }
+  50% {
+    opacity: 0.55;
+    transform: scale(0.96);
+  }
 }
 
-.window-open[data-animations="true"] {
-  animation: windowOpen 0.2s ease-out;
+.animate-glyph-pulse {
+  animation: glyphPulse 2.4s ease-in-out infinite;
+}
+
+/* Window Opening Animation */
+@keyframes windowSpring {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.window-spring {
+  animation: windowSpring 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

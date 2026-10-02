@@ -1,46 +1,52 @@
-'use client'
+'use client';
 
-import React, { useState, useRef } from 'react'
-import gsap from 'gsap'
+import React, { useState, useRef } from 'react';
+import { audioEngine } from '@/lib/audio';
+import { useDesktopStore } from '@/stores/desktop-store';
+import gsap from 'gsap';
 
 interface DesktopIconProps {
-  icon: React.ReactNode
-  label: string
-  onDoubleClick: () => void
-  isDark?: boolean
+  icon: React.ReactNode;
+  label: string;
+  onDoubleClick: () => void;
+  isDark?: boolean;
 }
 
 export function DesktopIcon({ icon, label, onDoubleClick, isDark = false }: DesktopIconProps) {
-  const [selected, setSelected] = useState(false)
-  const iconRef = useRef<HTMLDivElement>(null)
+  const [selected, setSelected] = useState(false);
+  const iconRef = useRef<HTMLDivElement>(null);
+  const { settings } = useDesktopStore();
 
   const handleMouseEnter = () => {
-    if (iconRef.current) {
-      gsap.to(iconRef.current, { scale: 1.08, duration: 0.15, ease: 'power1.out' })
+    if (iconRef.current && settings.animations) {
+      gsap.to(iconRef.current, { scale: 1.06, y: -2, duration: 0.15, ease: 'power2.out' });
     }
-  }
+  };
 
   const handleMouseLeave = () => {
-    if (iconRef.current) {
-      gsap.to(iconRef.current, { scale: 1, duration: 0.15, ease: 'power1.out' })
+    if (iconRef.current && settings.animations) {
+      gsap.to(iconRef.current, { scale: 1, y: 0, duration: 0.15, ease: 'power2.out' });
     }
-  }
+  };
 
   const handleDoubleClick = () => {
-    if (iconRef.current) {
-      gsap.timeline()
-        .to(iconRef.current, { scale: 0.88, duration: 0.08 })
-        .to(iconRef.current, { scale: 1.1, duration: 0.12 })
-        .to(iconRef.current, { scale: 1, duration: 0.1, onComplete: onDoubleClick })
-    } else {
-      onDoubleClick()
+    if (settings.sound) {
+      audioEngine.playPop();
     }
-  }
+    if (iconRef.current && settings.animations) {
+      gsap.timeline()
+        .to(iconRef.current, { scale: 0.9, duration: 0.08 })
+        .to(iconRef.current, { scale: 1.08, duration: 0.12 })
+        .to(iconRef.current, { scale: 1, duration: 0.1, onComplete: onDoubleClick });
+    } else {
+      onDoubleClick();
+    }
+  };
 
   return (
     <div
       ref={iconRef}
-      className="w-20 h-20 flex flex-col items-center justify-center gap-1 cursor-pointer outline-none select-none transition-transform"
+      className="w-20 h-20 flex flex-col items-center justify-center gap-1.5 cursor-pointer outline-none select-none transition-transform"
       onClick={(e) => {
         e.stopPropagation();
         setSelected(true);
@@ -51,26 +57,22 @@ export function DesktopIcon({ icon, label, onDoubleClick, isDark = false }: Desk
       onDoubleClick={handleDoubleClick}
       tabIndex={0}
     >
-      <div className={`p-2 rounded-sm border transition-colors ${
+      <div className={`p-3 rounded-2xl border transition-all duration-150 shadow-sm ${
         selected 
-          ? isDark ? 'bg-emerald-950/60 border-emerald-400 text-emerald-300' : 'bg-[#111111]/10 border-[#111111]' 
+          ? 'bg-white border-[#111111] text-black shadow-md ring-2 ring-black/10' 
           : isDark 
-          ? 'border-emerald-500/20 bg-black/40 hover:bg-black/60 hover:border-emerald-400/40 text-emerald-300 backdrop-blur-xs' 
-          : 'border-transparent hover:bg-[#111111]/5 text-[#111111]'
+          ? 'bg-[#181A1D]/80 border-white/10 hover:border-white/20 text-white backdrop-blur-md' 
+          : 'bg-white/80 border-[#E5E5E0] hover:border-black/30 hover:bg-white text-[#181A1D] hover:shadow-md'
       }`}>
-        <div className={isDark ? 'text-emerald-300 drop-shadow-[0_0_8px_rgba(40,240,140,0.5)]' : 'text-[#111111]'}>
-          {icon}
-        </div>
+        {icon}
       </div>
-      <div className={`text-[11px] text-center font-sans px-1.5 py-0.5 truncate w-full select-none rounded-xs ${
+      <span className={`px-2 py-0.5 rounded-full font-dot text-[10px] tracking-wider transition-colors truncate max-w-full ${
         selected 
-          ? 'bg-[#111111] text-[#FFFFFF]' 
-          : isDark 
-          ? 'text-emerald-100/90 font-medium drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] bg-black/40' 
-          : 'text-[#111111] drop-shadow-sm'
+          ? 'bg-[#111111] text-white font-bold' 
+          : 'text-[#444444] font-medium'
       }`}>
         {label}
-      </div>
+      </span>
     </div>
-  )
+  );
 }

@@ -216,3 +216,4 @@ class BackendClient {
 }
 
 export const backendClient = new BackendClient();
+export const apiClient = backendClient;

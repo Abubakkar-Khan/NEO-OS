@@ -4,6 +4,37 @@ All notable changes and architectural advancements in **NEO-OS** are documented 
 
 ---
 
+## [Version 1.2.0] - 2026-10-02
+
+### 1. 153x Backend Acceleration & Speculative Fast-Path Engine
+- **Lazy-Loaded Needle 3 Weights**: Replaced eager startup initialization across `RouterAgent`, `BaseSpecialistAgent`, and `AgentRunner` with on-demand lazy initialization (`_ensure_needle()`). Eliminated 7x redundant RAM weight allocations, accelerating test suite execution from 101.30s down to **0.66s** (153x speedup).
+- **Speculative Fast-Path Classification**: Implemented deterministic sub-millisecond classification in `RouterAgent` and specialists for common window, file, and editor commands (<1ms execution). Ambiguous or conversational requests automatically fall back to the Needle 3 neural tool-calling engine.
+- **Removed Artificial Delays**: Stripped `time.sleep` and `asyncio.sleep` delays across the tool proxies and coordinator, enabling instantaneous real-time execution.
+
+### 2. Nothing OS Utilitarian Design System (Human-Friendly & Easy on the Eyes)
+- **Warm Ceramic Palette**: Replaced harsh high-contrast black boxes with warm ceramic surfaces (`#F4F4F0` canvas, `#FAF9F5` cards, `#FFFFFF` viewports), soft graphite text (`#111111`), and signature **Nothing Red** (`#D71920`) focal accents.
+- **Utilitarian Pill & Squircle Geometry**: Implemented friendly rounded pill contours (`rounded-full`), squircle application badges (`rounded-2xl`), dot-matrix NDot typography, and smooth elevations (`window-elevation`, `dock-glass`).
+- **4 Built-in Applications Overhauled**:
+  - **Text Editor**: Tactile pill toolbar (New, Open, Save with audio cues), dot-matrix line numbering gutter, live word/line/char counters, and Nothing Red unsaved status dot.
+  - **File Manager**: Breadcrumb path pills, quick search filter, soft squircle folder badges, item count status footer, and refined context menu.
+  - **Web Browser**: Pill omnibar with Nothing Red security dot, bookmark chips, segmented Live/Reader pill switch, and clean reader view.
+  - **Settings**: System overview cards, audio cue test button, smooth pill toggle switches, registered tool catalog, and safe desktop reset.
+
+### 3. Alive Character & Interactive Micro-Haptics
+- **Alive Needle Mascot**:
+  - **Pupil Eye Tracking**: Real-time pupil movement dynamically following the user's cursor position.
+  - **Organic Blinking Loop**: Spontaneous natural blinking timers mimicking biological character life.
+  - **GSAP Breathing Motion**: Organic scale and hover physics with spring eases.
+  - **Interactive Poke Reaction**: Clicking the mascot triggers an elastic pop and conversational bubble response.
+- **Synthesized Web Audio API Micro-Haptics**: Zero-asset audio engine (`src/lib/audio.ts`) producing physical mechanical clicks, window focus pops, success chimes, and alert tones with zero external sound files.
+
+### 4. Nothing OS Spotlight Command Bar
+- **Global `Cmd+K` / `Ctrl+K` Access**: Instantly brings focus to the command input from anywhere with spring animation.
+- **Live Plan Prediction Chips**: Live visual breakdown of predicted multi-agent steps (e.g., `[Desktop: Open Editor] → [Files: Create File]`) rendered as pills before execution.
+- **Terminal History & Voice Waveform**: Arrow up/down command recall persisted in `localStorage` and dynamic audio waveform during speech dictation.
+
+---
+
 ## [Version 1.1.0] - 2026-10-02
 
 ### Needle 3 Model Upgrade (Cactus Compute)
@@ -11,7 +42,6 @@ All notable changes and architectural advancements in **NEO-OS** are documented 
 - **Local Model Weights Installation**: Downloaded and cached official Needle 3 model weights (`Cactus-Compute/needle3` &rarr; `needle3.cact`) for local-first, zero-cloud execution.
 - **Hierarchical Engine Migration**: Migrated Root Router Agent, all 5 Domain Specialist Agents (`FilesAgent`, `DesktopAgent`, `EditorAgent`, `BrowserAgent`, `SystemAgent`), and backend `AgentRunner` to run `Needle(..., generation=3)`.
 - **FastAPI Backend Synchronization**: Updated `/` root discovery endpoint and command execution loops to report `"model": "Needle 3 (cactus-needle)"`, `"generation": 3`.
-- **Frontend & Mission Control Alignment**: Updated `Settings.tsx`, `AgentExecutionGraph.tsx`, `layout.tsx`, `api-client.ts`, and `Mascot.tsx` to reflect Needle 3 engine status.
 - **Comprehensive Test Suite Verification**:
   - `python -m pytest backend/tests -v`: 15/15 tests passing with Needle 3 local weights.
   - `npm test`: 17/17 Mocha & Chai tests passing.

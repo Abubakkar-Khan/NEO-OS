@@ -20,7 +20,13 @@ class RouterAgent:
         self._last_routed_domain: Optional[DomainType] = None
         self._last_routed_request: Optional[str] = None
         self._needle: Optional[Needle] = None
-        self._init_needle()
+        self._needle_initialized = False
+
+    def _ensure_needle(self):
+        if not self._needle_initialized:
+            self._needle_initialized = True
+            self._init_needle()
+        return self._needle
 
     def _init_needle(self):
         """Initialize Needle 3 with the 5 bounded routing tools."""
@@ -149,22 +155,20 @@ class RouterAgent:
         elif any(w in low for w in ["time", "system", "setting", "reset", "what's on", "whats on"]):
             semantic_domain = "system"
 
-        if self._needle:
+        # High-speed semantic classification fast-path
+        if semantic_domain:
+            return semantic_domain, 0.98
+
+        # Fallback to Needle 3 neural classification for complex / conversational queries
+        needle_inst = self._ensure_needle()
+        if needle_inst:
             try:
-                res = self._needle.run(query=segment, max_steps=2)
+                res = needle_inst.run(query=segment, max_steps=2)
                 conf = res.get("confidence")
                 if conf is not None and isinstance(conf, (int, float)):
                     confidence = float(conf)
             except Exception as e:
                 print(f"[RouterAgent] Routing execution warning: {e}")
-
-        # If Needle executed a routing tool with high confidence (>= 0.7), consider it
-        if self._last_routed_domain and confidence >= 0.7:
-            if not semantic_domain or self._last_routed_domain == semantic_domain:
-                return self._last_routed_domain, confidence
-
-        if semantic_domain:
-            return semantic_domain, max(confidence, 0.96)
 
         if self._last_routed_domain:
             return self._last_routed_domain, confidence

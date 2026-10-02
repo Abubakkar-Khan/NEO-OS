@@ -17,7 +17,13 @@ class BaseSpecialistAgent:
     def __init__(self):
         self._needle: Optional[Needle] = None
         self._active_run_id: Optional[str] = None
-        self._init_needle()
+        self._needle_initialized = False
+
+    def _ensure_needle(self):
+        if not self._needle_initialized:
+            self._needle_initialized = True
+            self._init_needle()
+        return self._needle
 
     def _init_needle(self):
         """Register only the strictly bounded tools for this specialist domain."""
@@ -83,8 +89,6 @@ class BaseSpecialistAgent:
                 arguments=call_kwargs
             ))
 
-            time.sleep(0.06)
-
             try:
                 # 4. Execute on shared virtual OS state
                 res = global_tool_registry.execute(tool_name, call_kwargs, bypass_confirmation=True)
@@ -147,9 +151,22 @@ class BaseSpecialistAgent:
             if ctx_summary:
                 enhanced_query = f"{request} (Context: {', '.join(ctx_summary)})"
 
-        if self._needle:
+        # 1. Speculative Fast-Path: Context-driven specialist execution (<1ms)
+        fast_res = self._fallback_execute(request, run_id, context)
+        if fast_res:
+            self._active_run_id = None
+            return {
+                "agent": self.agent_id,
+                "confidence": 0.98,
+                "reasoning": f"{self.display_name} executed targeted action via virtual OS state context.",
+                "results": fast_res
+            }
+
+        # 2. Neural Tool-Calling Inference via Needle 3 for ambiguous / conversational commands
+        needle_inst = self._ensure_needle()
+        if needle_inst:
             try:
-                res = self._needle.run(query=enhanced_query, max_steps=4)
+                res = needle_inst.run(query=enhanced_query, max_steps=4)
                 if res.get("confidence") is not None and isinstance(res.get("confidence"), (int, float)):
                     confidence = float(res.get("confidence"))
                 reasoning = res.get("reasoning", "")
@@ -157,21 +174,11 @@ class BaseSpecialistAgent:
             except Exception as e:
                 print(f"[{self.display_name}] Specialist run exception: {e}")
 
-        # Check if Needle succeeded or if validation/execution failed or confidence is low
-        has_errors = any(isinstance(r, str) and ("Validation error" in r or "Error executing" in r) for r in results)
-        if not results or has_errors or confidence < 0.6:
-            fallback_res = self._fallback_execute(request, run_id, context)
-            if fallback_res:
-                results = fallback_res
-                confidence = max(confidence, 0.95)
-                if not reasoning:
-                    reasoning = f"{self.display_name} autonomously evaluated request using virtual OS state context."
-
         self._active_run_id = None
         return {
             "agent": self.agent_id,
             "confidence": round(confidence, 4),
-            "reasoning": reasoning,
+            "reasoning": reasoning or f"{self.display_name} evaluated request using Needle 3.",
             "results": results
         }
 

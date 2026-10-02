@@ -94,9 +94,6 @@ class AgentCoordinator:
                 message=f"Handoff to {specialist.display_name}: '{step.request}'"
             ))
 
-            # Small pacing delay for harness visual flow
-            await asyncio.sleep(0.08)
-
             # Execute specialist agent
             exec_res = await asyncio.to_thread(
                 specialist.execute,

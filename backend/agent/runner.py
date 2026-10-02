@@ -17,7 +17,13 @@ class AgentRunner:
     def __init__(self):
         self._active_run_id: Optional[str] = None
         self._needle_instance: Optional[Needle] = None
-        self._init_needle()
+        self._needle_initialized = False
+
+    def _ensure_needle(self):
+        if not self._needle_initialized:
+            self._needle_initialized = True
+            self._init_needle()
+        return self._needle_instance
 
     def _init_needle(self):
         """Build wrapped tools for Needle 3 with real-time event hooks."""

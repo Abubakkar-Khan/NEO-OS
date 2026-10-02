@@ -13,8 +13,10 @@ import {
   Bookmark, 
   BookOpen, 
   ShieldCheck, 
-  AlertCircle 
+  X,
+  Compass
 } from 'lucide-react';
+import { audioEngine } from '@/lib/audio';
 
 type BrowserViewMode = 'iframe' | 'reader' | 'search';
 
@@ -22,7 +24,6 @@ const DEFAULT_BOOKMARKS = [
   { name: 'Wikipedia', url: 'https://en.m.wikipedia.org', mode: 'iframe' as BrowserViewMode },
   { name: 'Hacker News', url: 'https://news.ycombinator.com', mode: 'iframe' as BrowserViewMode },
   { name: 'DuckDuckGo', url: 'https://html.duckduckgo.com', mode: 'iframe' as BrowserViewMode },
-  { name: 'Example.com', url: 'https://example.com', mode: 'iframe' as BrowserViewMode },
   { name: 'MDN Web', url: 'https://developer.mozilla.org/en-US/', mode: 'iframe' as BrowserViewMode },
   { name: 'Next.js Docs', url: 'https://nextjs.org/docs', mode: 'reader' as BrowserViewMode },
 ];
@@ -53,9 +54,8 @@ export default function Browser() {
 
   const normalizeUrl = (input: string): { url: string; isSearch: boolean } => {
     const trimmed = input.trim();
-    if (!trimmed) return { url: 'https://example.com', isSearch: false };
+    if (!trimmed) return { url: 'https://en.m.wikipedia.org', isSearch: false };
 
-    // Check if input is a search query
     if (!trimmed.includes('.') && !trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
       return { url: trimmed, isSearch: true };
     }
@@ -69,6 +69,7 @@ export default function Browser() {
 
   const handleNavigate = (target: string) => {
     const { url, isSearch } = normalizeUrl(target);
+    audioEngine.playClick();
     if (isSearch) {
       browserSearch(url);
       setMode('reader');
@@ -87,137 +88,145 @@ export default function Browser() {
   };
 
   const handleReload = () => {
+    audioEngine.playClick();
     setIsLoading(true);
     setIframeKey(prev => prev + 1);
   };
 
   const handleHome = () => {
+    audioEngine.playPop();
     handleNavigate('https://en.m.wikipedia.org');
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#FFFFFF] text-[#000000] font-mono text-xs select-none">
-      {/* ─── Top Control Toolbar ─── */}
-      <div className="flex items-center gap-1 p-1.5 border-b border-[#333333] bg-[#F5F5F2] shrink-0">
+    <div className="flex flex-col h-full bg-[#FFFFFF] text-[#111111] font-mono text-xs select-none">
+      {/* ─── Nothing OS Utilitarian Navigation Bar ─── */}
+      <div className="flex items-center gap-1.5 px-3 py-2 border-b border-[#E8E8E2] bg-[#FAF9F5] shrink-0">
         <button
-          onClick={browserBack}
+          onClick={() => { audioEngine.playClick(); browserBack(); }}
           disabled={browser.history.length <= 1}
-          className="p-1 hover:bg-[#D9D9D9] border border-transparent hover:border-[#888888] disabled:opacity-30 disabled:hover:border-transparent"
+          className="p-1.5 rounded-full hover:bg-white border border-transparent hover:border-[#E0E0DA] disabled:opacity-30 disabled:hover:border-transparent transition-all"
           title="Back"
         >
           <ArrowLeft size={14} />
         </button>
         <button
           disabled
-          className="p-1 opacity-30 cursor-not-allowed"
+          className="p-1.5 rounded-full opacity-30 cursor-not-allowed"
           title="Forward"
         >
           <ArrowRight size={14} />
         </button>
         <button
           onClick={handleReload}
-          className="p-1 hover:bg-[#D9D9D9] border border-transparent hover:border-[#888888]"
+          className="p-1.5 rounded-full hover:bg-white border border-transparent hover:border-[#E0E0DA] transition-all"
           title="Reload"
         >
-          <RotateCw size={14} className={isLoading ? 'animate-spin' : ''} />
+          <RotateCw size={13} className={isLoading ? 'animate-spin' : ''} />
         </button>
         <button
           onClick={handleHome}
-          className="p-1 hover:bg-[#D9D9D9] border border-transparent hover:border-[#888888]"
+          className="p-1.5 rounded-full hover:bg-white border border-transparent hover:border-[#E0E0DA] transition-all"
           title="Home"
         >
           <Home size={14} />
         </button>
 
-        {/* Omnibar (URL / Search input) */}
+        {/* Omnibar Pill */}
         <form onSubmit={handleSubmit} className="flex-1 flex items-center mx-1">
-          <div className="flex-1 flex items-center bg-[#FFFFFF] border border-[#333333] px-2 py-0.5 shadow-inner">
-            <Globe size={12} className="text-[#888888] mr-1.5 shrink-0" />
+          <div className="w-full flex items-center bg-white border border-[#E0E0DA] rounded-full px-3 py-1 shadow-2xs focus-within:border-[#111111] transition-all">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#D71920] mr-2 shrink-0" />
             <input
               type="text"
               value={urlInput}
               onChange={(e) => setUrlInput(e.target.value)}
-              placeholder="Search or enter URL (e.g. en.wikipedia.org)..."
+              placeholder="Enter URL or search query..."
               className="flex-1 bg-transparent text-[#111111] outline-none font-mono text-xs"
             />
+            {isLoading && (
+              <span className="text-[10px] text-[#888882] font-sans uppercase animate-pulse ml-2">Loading</span>
+            )}
           </div>
         </form>
 
-        {/* Mode Switcher */}
-        <div className="flex items-center border border-[#333333] overflow-hidden bg-[#E5E5E0]">
+        {/* Segmented Mode Pill */}
+        <div className="flex items-center p-0.5 rounded-full bg-[#EFEFEA] border border-[#E5E5DE]">
           <button
-            onClick={() => setMode('iframe')}
-            className={`px-2 py-1 text-[11px] font-bold ${
-              mode === 'iframe' ? 'bg-[#111111] text-[#FFFFFF]' : 'hover:bg-[#D9D9D9] text-[#333333]'
+            onClick={() => { audioEngine.playClick(); setMode('iframe'); }}
+            className={`px-2.5 py-0.5 rounded-full text-[10px] font-sans font-semibold tracking-wide transition-all ${
+              mode === 'iframe' 
+                ? 'bg-white text-[#111111] shadow-2xs' 
+                : 'text-[#777772] hover:text-[#111111]'
             }`}
-            title="Live Web Iframe"
           >
             LIVE
           </button>
           <button
-            onClick={() => setMode('reader')}
-            className={`px-2 py-1 text-[11px] font-bold ${
-              mode === 'reader' ? 'bg-[#111111] text-[#FFFFFF]' : 'hover:bg-[#D9D9D9] text-[#333333]'
+            onClick={() => { audioEngine.playClick(); setMode('reader'); }}
+            className={`px-2.5 py-0.5 rounded-full text-[10px] font-sans font-semibold tracking-wide transition-all ${
+              mode === 'reader' 
+                ? 'bg-white text-[#111111] shadow-2xs' 
+                : 'text-[#777772] hover:text-[#111111]'
             }`}
-            title="Simulated / Reader View"
           >
             READER
           </button>
         </div>
 
-        {/* External Link Launcher */}
+        {/* External Link */}
         <a
           href={activeUrl.startsWith('http') ? activeUrl : `https://${activeUrl}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="p-1 hover:bg-[#D9D9D9] border border-transparent hover:border-[#888888] text-[#333333]"
-          title="Open in Host Browser Tab"
+          className="p-1.5 rounded-full hover:bg-white border border-transparent hover:border-[#E0E0DA] text-[#555550] transition-all"
+          title="Open in new browser tab"
         >
-          <ExternalLink size={14} />
+          <ExternalLink size={13} />
         </a>
       </div>
 
-      {/* ─── Bookmarks Bar ─── */}
-      <div className="flex items-center gap-1 px-2 py-1 border-b border-[#D9D9D9] bg-[#EFEFEA] text-[11px] overflow-x-auto shrink-0">
-        <Bookmark size={11} className="text-[#888888] mr-1 shrink-0" />
+      {/* ─── Bookmarks Pill Bar ─── */}
+      <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-[#EFEFEA] bg-[#FAF9F5] text-[11px] overflow-x-auto shrink-0">
+        <Bookmark size={11} className="text-[#888882] mr-0.5 shrink-0" />
         {DEFAULT_BOOKMARKS.map((bm) => (
           <button
             key={bm.name}
             onClick={() => {
+              audioEngine.playPop();
               setMode(bm.mode);
               handleNavigate(bm.url);
             }}
-            className="px-1.5 py-0.5 hover:bg-[#FFFFFF] hover:border hover:border-[#333333] rounded-sm truncate text-[#222222]"
+            className="px-2.5 py-0.5 bg-white rounded-full border border-[#E5E5DE] hover:border-[#111111] text-[#333330] hover:text-[#111111] font-sans text-[11px] transition-all whitespace-nowrap"
           >
             {bm.name}
           </button>
         ))}
       </div>
 
-      {/* ─── Security & X-Frame Embed Banner ─── */}
+      {/* ─── Security Sandbox Notice ─── */}
       {showEmbedNotice && mode === 'iframe' && (
-        <div className="flex items-center justify-between px-3 py-1 bg-[#111111] text-[#FFFFFF] text-[10px] shrink-0 border-b border-[#333333]">
+        <div className="flex items-center justify-between px-3.5 py-1 bg-[#111111] text-[#FFFFFF] text-[10px] shrink-0 font-sans">
           <div className="flex items-center gap-2 truncate">
-            <ShieldCheck size={12} className="text-[#D9D9D9] shrink-0" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] shrink-0" />
             <span className="truncate">
-              Live Web Sandbox: Some domains (Google, GitHub) block iframes via X-Frame-Options. Use Reader Mode or Bookmarks for full preview.
+              Web Sandbox: Some domains (Google, GitHub) enforce X-Frame headers. Click READER mode or bookmarks for full preview.
             </span>
           </div>
           <button
             onClick={() => setShowEmbedNotice(false)}
-            className="text-[#888888] hover:text-[#FFFFFF] ml-2 px-1"
+            className="text-[#888882] hover:text-[#FFFFFF] ml-2 p-0.5"
           >
-            ×
+            <X size={12} />
           </button>
         </div>
       )}
 
-      {/* ─── Main Viewport ─── */}
+      {/* ─── Viewport ─── */}
       <div className="flex-1 relative overflow-hidden bg-[#FFFFFF]">
         {mode === 'iframe' ? (
           <div className="w-full h-full relative">
             {isLoading && (
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#111111] animate-pulse z-10" />
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#D71920] animate-pulse z-10" />
             )}
             <iframe
               key={iframeKey}
@@ -227,52 +236,55 @@ export default function Browser() {
               sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
               onLoad={() => setIsLoading(false)}
               onError={() => setIsLoading(false)}
-              title="NeedleOS Browser Viewport"
+              title="Browser Viewport"
             />
           </div>
         ) : (
-          /* Reader / Simulated Search Mode */
-          <div className="h-full overflow-y-auto p-6 bg-[#FAFAF8]">
+          /* Reader / Simulated Content Mode */
+          <div className="h-full overflow-y-auto p-6 bg-[#FAF9F5] select-text">
             {browser.searchResults && browser.searchResults.length > 0 ? (
-              <div className="max-w-2xl mx-auto space-y-4">
-                <div className="flex items-center justify-between border-b border-[#111111] pb-2">
-                  <h2 className="text-sm font-bold flex items-center gap-2">
-                    <Search size={14} /> Search Results for: &ldquo;{browser.url.replace('search:', '')}&rdquo;
+              <div className="max-w-2xl mx-auto space-y-3">
+                <div className="flex items-center justify-between border-b border-[#E0E0DA] pb-2">
+                  <h2 className="text-xs font-sans font-bold flex items-center gap-2 text-[#111111]">
+                    <Search size={14} className="text-[#D71920]" />
+                    Results for &ldquo;{browser.url.replace('search:', '')}&rdquo;
                   </h2>
-                  <span className="text-[10px] text-[#888888]">
-                    {browser.searchResults.length} results
+                  <span className="text-[10px] font-mono text-[#888882]">
+                    {browser.searchResults.length} items
                   </span>
                 </div>
                 {browser.searchResults.map((res, i) => (
-                  <div key={i} className="p-3 border border-[#D9D9D9] bg-[#FFFFFF] hover:border-[#111111] transition-colors">
+                  <div key={i} className="p-3.5 rounded-xl bg-white border border-[#E5E5DE] hover:border-[#111111] transition-all shadow-2xs">
                     <button
                       onClick={() => {
+                        audioEngine.playPop();
                         setMode('iframe');
                         handleNavigate(res.url);
                       }}
                       className="text-left w-full"
                     >
-                      <h3 className="font-bold underline text-[#111111] hover:text-[#000000]">{res.title}</h3>
-                      <div className="text-[10px] text-[#888888] mb-1">{res.url}</div>
-                      <p className="text-xs text-[#444444] leading-relaxed">{res.content}</p>
+                      <h3 className="font-sans font-semibold text-[#111111] text-xs hover:text-[#D71920] transition-colors">{res.title}</h3>
+                      <div className="text-[10px] font-mono text-[#888882] my-0.5">{res.url}</div>
+                      <p className="text-xs text-[#555550] leading-relaxed font-sans">{res.content}</p>
                     </button>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="max-w-2xl mx-auto space-y-4">
-                <div className="border border-[#111111] p-4 bg-[#FFFFFF]">
-                  <div className="flex items-center gap-2 text-xs font-bold border-b border-[#D9D9D9] pb-2 mb-3">
-                    <BookOpen size={14} /> READER VIEW: {activeUrl}
+              <div className="max-w-2xl mx-auto">
+                <div className="rounded-2xl border border-[#E5E5DE] p-5 bg-white shadow-2xs space-y-4">
+                  <div className="flex items-center gap-2 text-xs font-sans font-semibold text-[#111111]">
+                    <span className="w-2 h-2 rounded-full bg-[#D71920]" />
+                    <span>READER VIEW — {activeUrl}</span>
                   </div>
-                  <h1 className="text-base font-bold mb-2">Simulated Documentation & Web Viewer</h1>
-                  <p className="text-xs text-[#555555] leading-relaxed mb-4">
-                    This simulated view displays extracted readable content from the web and simulated desktop runtime queries without third-party network blocking.
+                  <h1 className="text-sm font-sans font-bold text-[#111111]">Clean Extracted Web Document</h1>
+                  <p className="text-xs text-[#666660] font-sans leading-relaxed">
+                    Utilitarian offline reader view rendering extracted markdown and text content without ad networks or script restrictions.
                   </p>
-                  <div className="p-3 bg-[#F5F5F2] border border-[#D9D9D9] text-xs font-mono space-y-2">
-                    <div><strong>Current URL:</strong> {activeUrl}</div>
+                  <div className="p-3 rounded-xl bg-[#FAF9F5] border border-[#EAEAE4] text-[11px] font-mono space-y-1 text-[#333330]">
+                    <div><strong>Target:</strong> {activeUrl}</div>
                     <div><strong>Protocol:</strong> HTTPS / Virtual Sandbox</div>
-                    <div><strong>Rendering Engine:</strong> NeedleOS Web Core v1.0</div>
+                    <div><strong>Engine:</strong> NEO-OS Utilitarian Web Core</div>
                   </div>
                 </div>
               </div>
@@ -282,13 +294,13 @@ export default function Browser() {
       </div>
 
       {/* ─── Status Bar ─── */}
-      <div className="flex items-center justify-between px-3 py-1 border-t border-[#D9D9D9] bg-[#F5F5F2] text-[10px] text-[#555555] shrink-0">
+      <div className="flex items-center justify-between px-3 py-1.5 border-t border-[#EAEAE4] bg-[#FAF9F5] text-[11px] font-mono text-[#777772] shrink-0">
         <div className="truncate max-w-[70%]">
-          {isLoading ? 'Connecting...' : `Loaded: ${activeUrl}`}
+          {isLoading ? 'Connecting...' : `Ready: ${activeUrl}`}
         </div>
         <div className="flex items-center gap-3">
-          <span className="uppercase font-bold">{mode} MODE</span>
-          <span>UTF-8</span>
+          <span className="uppercase font-semibold tracking-wider text-[10px] text-[#111111]">{mode}</span>
+          <span className="text-[#A0A09A]">UTF-8</span>
         </div>
       </div>
     </div>

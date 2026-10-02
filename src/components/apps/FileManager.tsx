@@ -38,7 +38,7 @@ export default function FileManager() {
   const currentFiles = listDirectory(currentFolderId);
   const currentNode = filesystem.find(n => n.id === currentFolderId);
   const isRoot = currentFolderId === 'root';
-  const displayPath = currentFolderId === 'root' ? '/' : getPathForNode(currentFolderId);
+  const displayPath = currentFolderId === 'root' ? 'Computer' : `Computer${getPathForNode(currentFolderId)}`;
 
   // Filter files by search string
   const filteredFiles = useMemo(() => {

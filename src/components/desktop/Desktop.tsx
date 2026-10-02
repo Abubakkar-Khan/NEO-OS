@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Folder, FileText, Globe, Settings as SettingsIcon } from 'lucide-react';
+import { Monitor, FileText, Globe, Settings as SettingsIcon } from 'lucide-react';
 import { useDesktopStore } from '@/stores/desktop-store';
 import { DesktopIcon } from './DesktopIcon';
 import { WindowManager } from './WindowManager';
@@ -18,6 +18,12 @@ export function Desktop() {
   useEffect(() => {
     // Connect to FastAPI backend & WebSocket sync
     backendClient.init();
+
+    const handleToggle = () => {
+      setView(v => v === 'desktop' ? 'harness' : 'desktop');
+    };
+    window.addEventListener('needleos:toggle-view', handleToggle);
+    return () => window.removeEventListener('needleos:toggle-view', handleToggle);
   }, []);
 
   const handleBackgroundClick = (e: React.MouseEvent) => {
@@ -57,9 +63,9 @@ export function Desktop() {
         {/* Desktop Shortcuts: z-[1] so open windows (z-20+) float strictly above them */}
         <div className="flex flex-col gap-3 relative z-[1] pointer-events-auto">
           <DesktopIcon 
-            icon={<Folder size={26} strokeWidth={1.75} />} 
-            label="Files" 
-            onDoubleClick={() => openApp('file-manager')} 
+            icon={<Monitor size={26} strokeWidth={1.75} />} 
+            label="Computer" 
+            onDoubleClick={() => openApp('file-manager', 'Computer')} 
           />
           <DesktopIcon 
             icon={<FileText size={26} strokeWidth={1.75} />} 

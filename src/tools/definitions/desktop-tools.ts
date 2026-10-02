@@ -4,10 +4,10 @@ import type { AppId } from '@/lib/types';
 
 const resolveAppId = (app: string): AppId | null => {
   const normalized = app.toLowerCase().replace(/[\s-]/g, '');
-  if (['filemanager', 'files'].includes(normalized)) return 'file-manager';
-  if (['texteditor', 'editor'].includes(normalized)) return 'text-editor';
-  if (['browser', 'webbrowser'].includes(normalized)) return 'browser';
-  if (['settings', 'options'].includes(normalized)) return 'settings';
+  if (['filemanager', 'files', 'computer', 'mycomputer', 'folder'].includes(normalized)) return 'file-manager';
+  if (['texteditor', 'editor', 'notes', 'notepad'].includes(normalized)) return 'text-editor';
+  if (['browser', 'webbrowser', 'web', 'internet'].includes(normalized)) return 'browser';
+  if (['settings', 'options', 'preferences'].includes(normalized)) return 'settings';
   return null;
 };
 

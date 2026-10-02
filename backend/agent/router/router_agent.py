@@ -143,12 +143,12 @@ class RouterAgent:
             semantic_domain = "editor"
         elif any(w in low for w in ["folder", "create a file", "create file", "delete", "rename", "move", "list"]):
             semantic_domain = "files"
-        elif any(w in low for w in ["open", "launch", "close", "minimize", "maximize", "focus"]):
+        elif any(w in low for w in ["open", "launch", "close", "minimize", "maximize", "focus", "computer"]):
             if "browser" in low:
                 semantic_domain = "browser"
             elif "editor" in low or "text editor" in low:
                 semantic_domain = "desktop"
-            elif "files" in low or "file manager" in low:
+            elif "files" in low or "file manager" in low or "computer" in low:
                 semantic_domain = "desktop"
             else:
                 semantic_domain = "desktop"

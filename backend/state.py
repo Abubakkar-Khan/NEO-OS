@@ -380,7 +380,7 @@ class VirtualOSState:
         s = str(app).lower().replace(" ", "").replace("-", "").replace("_", "")
         if "edit" in s or "note" in s or "text" in s:
             return "text-editor"
-        if "file" in s or "explorer" in s or "dir" in s:
+        if "file" in s or "explorer" in s or "dir" in s or "computer" in s:
             return "file-manager"
         if "brows" in s or "web" in s or "net" in s:
             return "browser"
@@ -392,7 +392,7 @@ class VirtualOSState:
         if app_id == "text-editor":
             return "Text Editor"
         if app_id == "file-manager":
-            return "File Manager"
+            return "Computer"
         if app_id == "browser":
             return "Browser"
         if app_id == "settings":

@@ -23,7 +23,7 @@ class DesktopAgent(BaseSpecialistAgent):
         target_app = "text-editor"
         if "browser" in low:
             target_app = "browser"
-        elif "file" in low or "files" in low:
+        elif "file" in low or "files" in low or "computer" in low or "folder" in low:
             target_app = "file-manager"
         elif "setting" in low:
             target_app = "settings"

@@ -39,7 +39,7 @@ export class LocalNeedleAdapter implements NeedleAdapter {
     const resolveAppId = (text: string): string | null => {
       const l = text.toLowerCase();
       if (/\b(editor|text\s*editor|notepad|notes?)\b/.test(l)) return 'text-editor';
-      if (/\b(file\s*manager|files|explorer|finder|folders?)\b/.test(l))
+      if (/\b(file\s*manager|files|explorer|finder|folders?|computer|my\s*computer)\b/.test(l))
         return 'file-manager';
       if (/\b(browser|web|internet|chrome|safari)\b/.test(l)) return 'browser';
       if (/\b(settings?|options?|preferences?)\b/.test(l)) return 'settings';
@@ -156,6 +156,12 @@ export class LocalNeedleAdapter implements NeedleAdapter {
           calls.push({ name: 'insert_text', arguments: { text: content } });
           continue;
         }
+      }
+
+      // ─── Open Computer Directly ─────────────────────────────
+      if (/^(open\s+)?(my\s+)?(the\s+)?computer$/i.test(low.trim())) {
+        calls.push({ name: 'open_app', arguments: { app: 'file-manager' } });
+        continue;
       }
 
       // ─── Open browser ─────────────────────────────────────────

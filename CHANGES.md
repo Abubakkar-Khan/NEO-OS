@@ -4,6 +4,47 @@ All notable changes and architectural advancements in **NEO-OS** are documented 
 
 ---
 
+## [Version 1.3.0] - 2026-10-02
+
+### 1. Fast "/" Slash Commands System
+- **Interactive Autocomplete Popover**: Added floating slash command menu triggered whenever the user types `/` in the command bar.
+- **14 Built-In Slash Commands**:
+  - `/computer` (aliases: `/files`, `/pc`): Instant direct launch of Computer.
+  - `/editor` (aliases: `/edit`, `/notes`): Instant launch of Text Editor.
+  - `/browser [url|query]` (alias: `/web`): Direct web search or URL navigation.
+  - `/settings`: Direct access to system preferences.
+  - `/control` (alias: `/harness`): Direct toggle between Desktop Shell and Mission Control Room.
+  - `/newfile [name]` (alias: `/touch`): Instant file creation in virtual filesystem.
+  - `/newfolder [name]` (alias: `/mkdir`): Instant directory creation.
+  - `/search [query]`: Instant web search.
+  - `/write [text]`: Direct insert text into active editor.
+  - `/save`: Direct file save.
+  - `/time`: Instant system clock readout.
+  - `/reset`: Fast desktop state restoration.
+  - `/clear`: Clear prompt input & command history.
+  - `/help`: Print all available fast slash commands.
+- **Sub-Millisecond Direct Execution**: Bypasses heavy neural routing loops entirely for slash commands, running direct mutations in `<1ms`.
+- **Keyboard Navigation**: Full arrow-key selection (`↑`/`↓`), `Tab`/`Enter` autocomplete, and `Esc` dismissal.
+
+### 2. Main Folder Renamed to "Computer"
+- **Desktop Shortcut Renaming**: Replaced "Files" desktop shortcut with **"Computer"** featuring a clean `Monitor` icon.
+- **Universal Intent Recognition**: Full natural language recognition for `"Computer"`, `"open computer"`, `"my computer"`, and `"show computer"` across frontend router, backend router agent, and desktop specialist.
+- **Window Title Synchronization**: Opening the main folder sets the window title and taskbar badge to **"Computer"**.
+- **Virtual Path Breadcrumb**: Breadcrumb root in File Manager prominently displays `Computer`.
+
+### 3. Simplified Mascot
+- **Unobtrusive Minimalist Companion**: Replaced the large permanent dialogue balloon with a sleek, non-intrusive 40x40 circular widget in the bottom right corner.
+- **Biological Eye Tracking & Blinking**: Maintained smooth pupil gaze tracking the mouse cursor and natural biological blinking intervals.
+- **Auto-Dismissing Micro-Toast**: Replaced cluttered buttons with a single-line, auto-dismissing Nothing OS pill notification (`• Ready`, `• Done: Opened Computer`).
+- **Tactile Poke Interaction**: Clean elastic pop bounce and audio cue on click without screen obstruction.
+
+### 4. Fast Single-Call Tool Execution (Eliminated 6-8 Redundant Calls)
+- **Eliminated Over-Segmentation**: Fixed greedy comma-splitting in `RouterAgent._segment_command`, avoiding unnecessary pipeline fragmentation into 6-8 micro-calls for single or cohesive tasks.
+- **Removed Artificial Delays**: Stripped 130ms of `setTimeout` delays in `src/agent/runner.ts`, accelerating sequential local tool calls to instantaneous speed.
+- **Direct Keyword Fast-Path**: Canonical requests execute in 1 direct tool call without multi-step roundtrip overhead.
+
+---
+
 ## [Version 1.2.0] - 2026-10-02
 
 ### 1. 153x Backend Acceleration & Speculative Fast-Path Engine

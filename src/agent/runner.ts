@@ -108,9 +108,6 @@ export class AgentRunner {
         harness.updateToolStatus(toolCall.id, 'running');
         addEvt('TOOL_STARTED', { tool: toolCall.name });
 
-        // Small delay so the UI can show progression
-        await new Promise((resolve) => setTimeout(resolve, 80));
-
         try {
           const result = await executeTool(toolCall);
           toolCall.status = result.success ? 'success' : 'failed';
@@ -136,9 +133,6 @@ export class AgentRunner {
           harness.updateToolStatus(toolCall.id, 'failed', undefined, msg);
           addEvt('TOOL_FAILED', { tool: toolCall.name, error: msg });
         }
-
-        // Small delay between tool executions
-        await new Promise((resolve) => setTimeout(resolve, 50));
       }
 
       return { runId, status: 'completed', toolCalls, events };

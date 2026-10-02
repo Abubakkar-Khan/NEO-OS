@@ -109,10 +109,11 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
 
       const id = generateId();
       const offset = (state.openWindows.length % 6) * 28 + 40;
+      const defaultTitle = appId === 'file-manager' ? 'Computer' : appId === 'text-editor' ? 'Text Editor' : appId === 'browser' ? 'Browser' : 'Settings';
       const newWindow: AppWindow = {
         id,
         appId,
-        title: title || appId,
+        title: title || defaultTitle,
         minimized: false,
         zIndex,
         position: { x: offset, y: offset },

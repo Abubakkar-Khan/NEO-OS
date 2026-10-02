@@ -345,11 +345,12 @@ NEO-OS adopts a utilitarian design language inspired by **Nothing OS**:
 - **Signature Nothing Red (`#D71920`)**: Crisp accent dots indicating live status, unsaved buffers, and focused elements.
 - **Pill & Squircle Contours**: Tactile rounded-full action pills, squircle application icons (`rounded-2xl`), and NDot dot-matrix accents.
 
-### Alive Mascot & Dynamic Eye Tracking
+### Simplified Alive Mascot & Dynamic Eye Tracking
+- **Compact Minimalist Widget**: Sleek 40x40 circular widget in the bottom-right corner that doesn't block open windows or desktop shortcuts.
 - **Pupil Eye Tracking**: Pupil centers dynamically follow the user's cursor across the entire screen.
 - **Spontaneous Blinking**: Biological random blink intervals mimicking natural eye animation.
-- **GSAP Breathing Physics**: Fluid breathing animation and spring ease reactions when clicked/poked.
-- **Status Expressions**: Reactive emotional states (`neutral`, `curious`, `thinking`, `happy`, `alert`).
+- **Auto-Dismissing Mini Toast**: Clean Nothing OS pill toast (`• Ready`, `• Done: Opened Computer`) that auto-fades without permanent dialogue balloon clutter.
+- **Interactive Poke**: Elastic bounce and tactile sound on click.
 
 ### Synthesized Web Audio API Micro-Haptics
 Zero-asset mechanical haptics engine generating tactile sound cues without any audio file downloads:
@@ -358,9 +359,10 @@ Zero-asset mechanical haptics engine generating tactile sound cues without any a
 - **Pleasant chord chimes** on workflow completion.
 - **Low warning tone** on destructive action confirmation.
 
-### Nothing Spotlight Command Bar (Cmd+K)
+### Nothing Spotlight Command Bar & Slash Commands (Cmd+K)
+- **Fast "/" Slash Commands**: Type `/` to open an autocomplete popover with 14 instant commands (`/computer`, `/editor`, `/browser`, `/settings`, `/control`, `/newfile`, `/newfolder`, `/search`, `/write`, `/save`, `/time`, `/reset`, `/clear`, `/help`) running in `<1ms`.
 - **Instant Hotkey**: Pressing `Cmd+K` or `Ctrl+K` smoothly focuses the spotlight bar from anywhere.
-- **Live Plan Prediction Chips**: Displays predicted multi-agent steps (e.g. `[Desktop: Open Editor] → [Files: Create File]`) as interactive pills while typing.
+- **Live Plan Prediction Chips**: Displays predicted multi-agent steps (e.g. `[Desktop: Open Computer] → [Files: Create File]`) as interactive pills while typing.
 - **Command History**: Terminal-style recall with `↑` and `↓` arrow keys persisted in `localStorage`.
 
 ---
@@ -378,8 +380,11 @@ Switching to the Harness view reveals the Mission Control Room:
 
 ## Core Features
 
+- **Fast "/" Slash Commands System**: Type `/` to open an autocomplete popover with 14 instant commands (`/computer`, `/editor`, `/browser`, `/settings`, `/control`, `/newfile`, `/newfolder`, `/search`, `/write`, `/save`, `/time`, `/reset`, `/clear`, `/help`) running in `<1ms`.
+- **Computer Main Folder**: The primary filesystem environment is named **"Computer"** and responds immediately to `"Computer"`, `"open computer"`, or `/computer`.
+- **Simplified Alive Mascot**: Sleek, non-intrusive 40x40 companion with organic pupil cursor tracking, spontaneous biological blinking, and auto-dismissing mini status toasts without screen clutter.
+- **Fast Single-Call Tool Execution**: Eliminates redundant 6-8 call cascades with direct fast-path matching and zero artificial timeouts.
 - **Dual Screens**: Switch seamlessly between Desktop Shell mode and Harness Control Room mode.
-- **Alive Mascot**: Pupil eye-tracking character with spontaneous blinking and conversational speech bubbles.
 - **Tactile Audio Haptics**: Synthesized Web Audio API clicks, pops, and chimes.
 - **Terminal Command History**: ArrowUp (`↑`) and ArrowDown (`↓`) prompt history recall.
 - **Full Browser Simulation**: Fast simulated search engine mode and live sandboxed iframe browsing with bookmarked sites (Wikipedia, Hacker News, DuckDuckGo, MDN).
